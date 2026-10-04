@@ -81,11 +81,8 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 .toggle .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.2s;}
 .toggle input:checked + .slider{background:var(--sage);}
 .toggle input:checked + .slider:before{transform:translateX(18px);}
-.tier-row{display:grid;grid-template-columns:1fr 90px 80px 60px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
-.tier-row:last-child{border-bottom:none;}
-.tier-row .name{font-size:13px;}
-.tier-row input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:ui-monospace,monospace;width:100%;}
-.tier-row .weight-pct{font-size:13px;font-weight:600;color:var(--sage);text-align:right;}
+.kg-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:18px;font-weight:700;color:var(--forest);font-family:ui-monospace,monospace;background:#fff;}
+.kg-input:focus{outline:none;border-color:var(--sage);}
 .scenario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
 .scenario-card{background:#fff;border-radius:12px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,0.05);border-top:4px solid var(--sage);}
 .scenario-card.best{border-top-color:var(--success);}
@@ -140,7 +137,6 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 .badge-pl{background:#ecfdf5;color:var(--success);}
 .badge-placeholder{background:#f3f4f6;color:var(--text-muted);}
 .badge-programme{background:#eff6ff;color:#1e40af;}
-.badge-sales{background:#fef3c7;color:#92400e;}
 #sourcesBtn{background:#fff !important;color:var(--forest) !important;border:2px solid var(--sand) !important;padding:10px 16px !important;border-radius:8px !important;font-weight:700 !important;font-size:13px !important;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
 #sourcesBtn.all-loaded{background:var(--sage) !important;color:#fff !important;border-color:var(--sage) !important;}
 #sourcesBtn.partial{background:var(--sand) !important;}
@@ -194,24 +190,46 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
     <div class="hero">
       <div class="hero-grid">
         <div>
-          <div class="hero-label">To hit your target, you need to sell</div>
+          <div class="hero-label">To hit the target over the next 12 months, you need to sell</div>
           <div><span class="hero-number" id="heroUnits">—</span><span class="hero-unit">units / month</span></div>
           <div class="hero-sub" id="heroSub">Calculating…</div>
           <div class="source-tag" data-src="model+sales">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
         </div>
         <div class="hero-target">
-          <label>Annual surplus target (HKD)</label>
+          <label>Annual surplus target (HKD) — 12-month projection</label>
           <input type="number" id="targetInput" value="200000" step="10000" onchange="onTargetChange()">
           <div class="hint">Drag sliders below to explore. Numbers update live.</div>
+
+          <div style="margin-top:16px; padding-top:14px; border-top:1px solid rgba(0,0,0,0.08);">
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:6px;">Weight to collect</div>
+            <div style="font-size:26px; font-weight:800; color:var(--forest); line-height:1;">
+              <span id="heroWeight">—</span>
+              <span style="font-size:14px; color:var(--text-muted); font-weight:500;">kg / month</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">
+              <span id="heroWeightAnnual">—</span> kg / year · at <span id="heroSellThrough">—</span>% sell-through
+            </div>
+          </div>
+
+          <div style="margin-top:12px; padding-top:12px; border-top:1px dashed rgba(0,0,0,0.08);">
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:6px;">Weight to sell</div>
+            <div style="font-size:18px; font-weight:700; color:var(--sage);">
+              <span id="heroWeightSoldMonth">—</span>
+              <span style="font-size:12px; color:var(--text-muted); font-weight:500;">kg / month</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+              <span id="heroWeightSoldYear">—</span> kg / year
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="metric-grid">
-      <div class="metric-card"><div class="lbl">Avg selling price</div><div class="val" id="mAvgPrice">—</div><div class="sub" id="mAvgPriceSub">Weighted across tiers</div></div>
+      <div class="metric-card"><div class="lbl">Avg selling price</div><div class="val" id="mAvgPrice">—</div><div class="sub" id="mAvgPriceSub">Weighted average</div></div>
       <div class="metric-card"><div class="lbl">Contribution / unit</div><div class="val" id="mContribution">—</div><div class="sub">Price minus variable costs</div></div>
       <div class="metric-card warn"><div class="lbl">Break-even units / month</div><div class="val" id="mBreakEven">—</div><div class="sub">Just cover fixed costs</div></div>
-      <div class="metric-card highlight"><div class="lbl">Units to collect / month</div><div class="val" id="mCollect">—</div><div class="sub" id="mCollectSub">At 45% sell-through</div></div>
+      <div class="metric-card highlight"><div class="lbl">Units to collect / month</div><div class="val" id="mCollect">—</div><div class="sub" id="mCollectSub">—</div></div>
     </div>
 
     <div class="section" id="salesSection">
@@ -229,8 +247,15 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
     </div>
 
     <div class="section">
-      <h3>Monthly volume required (with seasonality)</h3>
-      <div class="section-sub">Pop-up shops in June and November mean higher volume in those months.</div>
+      <h3>Monthly units to sell — 12-month projection</h3>
+      <div class="section-sub">Each bar shows the <strong>units (pieces)</strong> you need to sell in that calendar month to hit the target.</div>
+      <div class="info-banner" style="font-size:12px; padding:12px 16px; margin-bottom:12px;">
+        <strong>How this is calculated:</strong>
+        The total annual units required (<span id="calcAnnualUnits">—</span> pieces) is split across 12 months using seasonality weights.
+        Peak months (<span id="calcPeakMonths">June &amp; November</span>) receive <span id="calcPeakMultiplier">×</span> the volume of an off-peak month,
+        based on actual historical sales. Off-peak months receive the remainder.
+        Weight to collect scales proportionally: <span id="calcWeightPeak">—</span> kg in peak months vs <span id="calcWeightOffpeak">—</span> kg in off-peak months.
+      </div>
       <div class="source-tag" data-src="model+excel+sales">Source: <strong>revenue_model.json</strong> (placeholder seasonality)</div>
       <div class="chart-wrap medium"><canvas id="monthlyChart"></canvas></div>
     </div>
@@ -244,7 +269,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 
     <div class="section">
       <h3>Adjust assumptions</h3>
-      <div class="section-sub">Move any slider to see the impact immediately.</div>
+      <div class="section-sub">Move any slider or edit any field to see the impact immediately.</div>
       <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
       <div class="controls-grid" id="controlsGrid"></div>
     </div>
@@ -258,15 +283,6 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
       <h3>Per-unit economics waterfall</h3>
       <div class="source-tag" data-src="model+sales">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
       <div class="waterfall-wrap" id="waterfallChart"></div>
-    </div>
-
-    <div class="section">
-      <h3>Price tiers</h3>
-      <div class="section-sub">Edit prices and weights. When a sales file is loaded, the dashboard uses the real weighted average price.</div>
-      <div class="source-tag" id="pricingSource" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder pricing tiers)</div>
-      <div id="tierEditor"></div>
-      <div style="margin-top:14px;padding:12px 16px;background:var(--cream);border-radius:8px;font-size:13px;">Weighted average: <strong id="weightedAvg">—</strong> · Weights sum: <strong id="weightSum">—</strong></div>
-      <div style="margin-top:12px;"><button class="tab" style="background:var(--sage);color:#fff;padding:8px 18px;border-radius:6px;font-size:12px;cursor:pointer;border:none;" onclick="applyNormalDistribution()">↻ Apply Normal Distribution</button></div>
     </div>
 
     <div class="section">
@@ -373,7 +389,8 @@ let EXCEL_UPLOADED=false,EXCEL_FILENAME='';
 let SALES_UPLOADED=false,SALES_FILENAME='';
 let PL_UPLOADED=false;
 let PENDING_UPDATE=null;
-const KG_PER_UNIT=0.25;
+let KG_PER_UNIT=parseFloat(localStorage.getItem('redress_kg_per_piece'))||0.18;
+let PRICE_MULTIPLIER=parseFloat(localStorage.getItem('redress_price_multiplier'))||1;
 const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_KEYS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const fmtHKD=n=>'HK$'+Math.round(n).toLocaleString();
@@ -403,7 +420,7 @@ function getLoadedSources(){
   const s=[];
   s.push(EXCEL_UPLOADED&&MODEL.derived_from_excel ? {
     id:'warehouse',label:'Warehouse Inventory',file:EXCEL_FILENAME,
-    detail:Math.round(MODEL.derived_from_excel.total_kg).toLocaleString()+' kg · '+MODEL.derived_from_excel.kg_per_unit+' kg/item',
+    detail:Math.round(MODEL.derived_from_excel.total_kg).toLocaleString()+' kg · '+KG_PER_UNIT.toFixed(3)+' kg/item',
     loaded:true
   } : { id:'warehouse',label:'Warehouse Inventory',loaded:false });
   s.push(SALES_UPLOADED&&MODEL.sales_actuals ? {
@@ -481,7 +498,7 @@ function removeSource(id){
     if(originalModel){MODEL.seasonality=JSON.parse(JSON.stringify(originalModel.seasonality));MODEL.yield=JSON.parse(JSON.stringify(originalModel.yield));MODEL.channels=JSON.parse(JSON.stringify(originalModel.channels));}
   }else if(id==='sales'){
     SALES_UPLOADED=false;SALES_FILENAME='';MODEL.sales_actuals=null;
-    if(originalModel){MODEL.pricing=JSON.parse(JSON.stringify(originalModel.pricing));MODEL.seasonality=JSON.parse(JSON.stringify(originalModel.seasonality));MODEL.channels=JSON.parse(JSON.stringify(originalModel.channels));}
+    if(originalModel){MODEL.seasonality=JSON.parse(JSON.stringify(originalModel.seasonality));MODEL.channels=JSON.parse(JSON.stringify(originalModel.channels));}
   }else if(id.startsWith('pl-')){
     const progs=(MODEL.pl_actuals&&MODEL.pl_actuals.programmes)||{};
     const found=Object.keys(progs).find(n=>'pl-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')===id);
@@ -505,7 +522,7 @@ function clearAllSources(){
 function updateAllSources(){
   document.querySelectorAll('.source-tag').forEach(el=>{
     const key=el.getAttribute('data-src');const id=el.id;
-    if(id==='plSource'||id==='fixedCostsSource'||id==='salesSource'||id==='pricingSource')return;
+    if(id==='plSource'||id==='fixedCostsSource'||id==='salesSource')return;
     const usesExcel=key&&key.includes('excel');
     const usesSales=key&&key.includes('sales');
     const usesModel=key&&key.includes('model');
@@ -528,11 +545,6 @@ function updateAllSources(){
       fc.innerHTML='Source: <strong>'+files.join(' + ')+'</strong>';
       fc.classList.add('real');
     }
-  }
-  const ps=$el('pricingSource');
-  if(ps&&SALES_UPLOADED&&MODEL.sales_actuals){
-    ps.innerHTML='Source: <strong>'+SALES_FILENAME+'</strong> — real ASP '+fmtHKD(MODEL.sales_actuals.overall_asp)+'/piece overrides placeholder tiers';
-    ps.classList.add('real');
   }
   const banner=$el('provenanceBanner');if(!banner)return;
   const parts=[];
@@ -558,6 +570,10 @@ async function loadModel(){
     if(!r.ok)throw new Error('HTTP '+r.status);
     MODEL=await r.json();
     originalModel=JSON.parse(JSON.stringify(MODEL));
+    // If localStorage has no value and JSON has one, use JSON
+    if(!localStorage.getItem('redress_kg_per_piece') && MODEL.kg_per_piece){
+      KG_PER_UNIT=MODEL.kg_per_piece;
+    }
     setText('metaDate','Model v'+MODEL.version+' · '+MODEL.last_updated);
     const ti=$el('targetInput');if(ti)ti.value=MODEL.target.surplus_hkd;
     if(MODEL.derived_from_excel){EXCEL_UPLOADED=true;EXCEL_FILENAME='revenue_model.json (pre-baked)';}
@@ -575,12 +591,15 @@ async function loadModel(){
 // CALCULATIONS
 // ============================================================
 function getWeightedAvgPrice(){
-  if(MODEL.sales_actuals && MODEL.sales_actuals.overall_asp>0)return MODEL.sales_actuals.overall_asp;
-  const tiers=MODEL.pricing.tiers.filter(t=>t.enabled);
-  if(!tiers.length)return 0;
-  const tw=tiers.reduce((s,t)=>s+t.weight,0);
-  if(!tw)return 0;
-  return tiers.reduce((s,t)=>s+t.price*t.weight,0)/tw;
+  let base=0;
+  if(MODEL.sales_actuals && MODEL.sales_actuals.overall_asp>0){
+    base=MODEL.sales_actuals.overall_asp;
+  }else if(MODEL.pricing && MODEL.pricing.effective_price>0){
+    base=MODEL.pricing.effective_price;
+  }else{
+    base=150;
+  }
+  return base*PRICE_MULTIPLIER;
 }
 function getMonthlyFixed(){
   if(!MODEL.fixed_costs.enabled)return 0;
@@ -614,7 +633,40 @@ function calculate(){
   }else mv=Array(12).fill(monthlyUnitsAvg);
   const st=MODEL.yield.sell_through_pct/100;
   const mc=st>0?monthlyUnitsAvg/st:0;
-  return{avgPrice,variableCost,contribution,monthlyFixed,annualUnits,monthlyUnitsAvg,monthlyVolumes:mv,breakEvenAnnual:beAnnual,breakEvenMonthly:beMonthly,monthlyCollectAvg:mc,sellThrough:st,target,periodMonths,annualContributionRequired:acr};
+
+  // Weight metrics — pieces × kg per piece
+  const annualUnitsCollected = st>0 ? annualUnits/st : 0;
+  const annualWeightSold = annualUnits*KG_PER_UNIT;
+  const monthlyWeightSold = annualWeightSold/periodMonths;
+  const annualWeightCollected = annualUnitsCollected*KG_PER_UNIT;
+  const monthlyWeightCollected = annualWeightCollected/periodMonths;
+
+  // Peak / off-peak weight (derived from monthlyVolumes)
+  const peakMonths = MODEL.seasonality.enabled ? MODEL.seasonality.peak_months : [];
+  let peakUnits=0, offpeakUnits=0, peakCount=0, offpeakCount=0;
+  mv.forEach((v,i)=>{
+    if(peakMonths.includes(i+1)){peakUnits+=v;peakCount++;}
+    else{offpeakUnits+=v;offpeakCount++;}
+  });
+  const peakUnitsAvg = peakCount>0?peakUnits/peakCount:0;
+  const offpeakUnitsAvg = offpeakCount>0?offpeakUnits/offpeakCount:0;
+  const peakMultiplier = offpeakUnitsAvg>0?peakUnitsAvg/offpeakUnitsAvg:1;
+  const peakWeightAvg = st>0?(peakUnitsAvg/st)*KG_PER_UNIT:0;
+  const offpeakWeightAvg = st>0?(offpeakUnitsAvg/st)*KG_PER_UNIT:0;
+
+  return{
+    avgPrice, variableCost, contribution, monthlyFixed,
+    annualUnits, monthlyUnitsAvg, monthlyVolumes:mv,
+    breakEvenAnnual:beAnnual, breakEvenMonthly:beMonthly,
+    monthlyCollectAvg:mc, sellThrough:st,
+    target, periodMonths, annualContributionRequired:acr,
+    // Weight metrics
+    annualWeightSold, monthlyWeightSold,
+    annualWeightCollected, monthlyWeightCollected,
+    // Seasonality detail
+    peakMultiplier, peakWeightAvg, offpeakWeightAvg,
+    peakMonths
+  };
 }
 
 // ============================================================
@@ -629,7 +681,6 @@ function renderAll(){
   safeCall('controls',()=>renderControls());
   safeCall('monthlyChart',()=>renderMonthlyChart(c));
   safeCall('cumulativeChart',()=>renderCumulativeChart(c));
-  safeCall('tierEditor',()=>renderTierEditor());
   safeCall('fixedCosts',()=>renderFixedCostsEditor());
   safeCall('variableCosts',()=>renderVariableCostsEditor());
   safeCall('waterfall',()=>renderWaterfall(c));
@@ -645,15 +696,20 @@ function renderAll(){
 function renderHero(c){
   setText('heroUnits',Math.ceil(c.monthlyUnitsAvg).toLocaleString());
   const el=$el('heroSub');
-  if(el)el.innerHTML='That is <strong>'+Math.ceil(c.annualUnits).toLocaleString()+' units per year</strong>, or about <strong>'+Math.ceil(c.monthlyUnitsAvg/30)+' units per day</strong>. You will need to collect roughly <strong>'+Math.ceil(c.monthlyCollectAvg).toLocaleString()+' items per month</strong> at '+MODEL.yield.sell_through_pct+'% sell-through.';
+  if(el)el.innerHTML='That is <strong>'+Math.ceil(c.annualUnits).toLocaleString()+' units (pieces) per year</strong>, or about <strong>'+Math.ceil(c.monthlyUnitsAvg/30)+' units per day</strong>. At '+MODEL.yield.sell_through_pct+'% sell-through and '+KG_PER_UNIT.toFixed(3)+' kg/piece, you need to collect roughly <strong>'+Math.ceil(c.monthlyCollectAvg).toLocaleString()+' items per month</strong> (≈ <strong>'+Math.ceil(c.monthlyWeightCollected).toLocaleString()+' kg</strong>).';
+  setText('heroWeight',Math.ceil(c.monthlyWeightCollected).toLocaleString());
+  setText('heroWeightAnnual',Math.ceil(c.annualWeightCollected).toLocaleString());
+  setText('heroWeightSoldMonth',Math.ceil(c.monthlyWeightSold).toLocaleString());
+  setText('heroWeightSoldYear',Math.ceil(c.annualWeightSold).toLocaleString());
+  setText('heroSellThrough',MODEL.yield.sell_through_pct);
 }
 function renderMetrics(c){
   setText('mAvgPrice',fmtHKD(c.avgPrice));
-  setText('mAvgPriceSub',SALES_UPLOADED?'From sales tracker (real)':'Weighted across '+MODEL.pricing.tiers.filter(t=>t.enabled).length+' tiers (placeholder)');
+  setText('mAvgPriceSub',(SALES_UPLOADED?'From sales tracker (real, per piece)':'Fallback effective price')+(PRICE_MULTIPLIER!==1?' × '+(PRICE_MULTIPLIER).toFixed(2):''));
   setText('mContribution',fmtHKD(c.contribution));
   setText('mBreakEven',Math.ceil(c.breakEvenMonthly).toLocaleString());
   setText('mCollect',Math.ceil(c.monthlyCollectAvg).toLocaleString());
-  setText('mCollectSub','At '+MODEL.yield.sell_through_pct+'% sell-through');
+  setText('mCollectSub','items · '+Math.ceil(c.monthlyWeightCollected).toLocaleString()+' kg · at '+MODEL.yield.sell_through_pct+'% sell-through');
 }
 
 // ---------- SALES SECTION ----------
@@ -673,7 +729,7 @@ function renderSalesSection(){
   const prev=years[years.length-2];
   
   let html='<div class="pl-grid">'+
-    '<div class="pl-card income"><div class="lbl">Real avg selling price</div><div class="val">'+fmtHKD(s.overall_asp)+'</div><div class="sub">'+(s.overall_asp<200?'Down from HK$230 placeholder':'')+'</div></div>'+
+    '<div class="pl-card income"><div class="lbl">Real avg selling price</div><div class="val">'+fmtHKD(s.overall_asp)+'</div><div class="sub">per piece</div></div>'+
     '<div class="pl-card profit"><div class="lbl">'+recent+' pieces sold</div><div class="val">'+fmtNum(s.by_year[recent].total_pieces)+'</div><div class="sub">'+fmtHKD(s.by_year[recent].total_sales)+' revenue</div></div>'+
     '<div class="pl-card income"><div class="lbl">'+recent+' vs '+prev+'</div><div class="val">'+(s.by_year[recent].total_sales>=s.by_year[prev].total_sales?'+':'')+((s.by_year[recent].total_sales/s.by_year[prev].total_sales-1)*100).toFixed(0)+'%</div><div class="sub">Revenue growth</div></div>'+
     '<div class="pl-card warn"><div class="lbl">Channel mix ('+recent+')</div><div class="val">'+((s.by_year[recent].channels['SSP store'].sales/s.by_year[recent].total_sales)*100).toFixed(0)+'/'+((s.by_year[recent].channels['Semi annual Pop-up'].sales/s.by_year[recent].total_sales)*100).toFixed(0)+'</div><div class="sub">Shop / Pop-up %</div></div>'+
@@ -731,8 +787,9 @@ function renderSalesSection(){
     salesChart=new Chart(ctx,{type:'bar',data:{labels:years,datasets},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
+          title:{display:true,text:'Revenue by channel & year (HKD)',color:'#1b4332',font:{size:13,weight:'600'},padding:{bottom:8}},
           tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtHKD(c.parsed.y)}}},
-        scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>fmtHKDcompact(v)}}}}});
+        scales:{x:{stacked:true,title:{display:true,text:'Year',color:'#6b7280',font:{size:11,weight:'600'}}},y:{stacked:true,title:{display:true,text:'Revenue (HKD)',color:'#6b7280',font:{size:11,weight:'600'}},ticks:{callback:v=>fmtHKDcompact(v)}}}}});
   }
 }
 
@@ -753,9 +810,9 @@ function renderPLSection(){
   if(src){const files=[...new Set(names.map(n=>progs[n].filename))];src.innerHTML='Source: <strong>'+files.join(' + ')+'</strong>';src.classList.add('real');}
   
   let html='<div class="pl-grid">'+
-    '<div class="pl-card income"><div class="lbl">Total income</div><div class="val">'+fmtHKD(totI)+'</div></div>'+
-    '<div class="pl-card costs"><div class="lbl">Total costs</div><div class="val">'+fmtHKD(totC)+'</div></div>'+
-    '<div class="pl-card profit"><div class="lbl">Operating profit</div><div class="val">'+fmtHKD(totP)+'</div></div>'+
+    '<div class="pl-card income"><div class="lbl">Total income (annual)</div><div class="val">'+fmtHKD(totI)+'</div></div>'+
+    '<div class="pl-card costs"><div class="lbl">Total costs (annual)</div><div class="val">'+fmtHKD(totC)+'</div></div>'+
+    '<div class="pl-card profit"><div class="lbl">Operating profit (annual)</div><div class="val">'+fmtHKD(totP)+'</div></div>'+
     '<div class="pl-card '+(totP>=target?'income':'gap')+'"><div class="lbl">vs Target</div><div class="val">'+(totP>=target?'✓ '+(totP/target).toFixed(1)+'x':'⚠')+'</div><div class="sub">Target '+fmtHKD(target)+'</div></div>'+
   '</div>';
   
@@ -777,13 +834,22 @@ function renderPLSection(){
 function renderControls(){
   const g=$el('controlsGrid');if(!g)return;g.innerHTML='';
   const c=calculate();
-  g.innerHTML='<div class="control-group"><h4>Sell-through rate</h4><div class="slider-row"><div class="slider-label"><span class="name">% of collected items that are sellable</span><span class="value" id="stValue">'+MODEL.yield.sell_through_pct+'%</span></div><input type="range" min="20" max="80" step="1" value="'+MODEL.yield.sell_through_pct+'" oninput="onSellThroughChange(this.value)"></div></div>'+
-  '<div class="control-group"><h4>Price adjustment</h4><div class="slider-row"><div class="slider-label"><span class="name">Shift all tier prices by</span><span class="value" id="psValue">100%</span></div><input type="range" min="70" max="130" step="5" value="100" oninput="onPriceShiftChange(this.value)"></div></div>'+
+  g.innerHTML=
+  '<div class="control-group"><h4>Sell-through rate</h4><div class="slider-row"><div class="slider-label"><span class="name">% of collected items that are sellable</span><span class="value" id="stValue">'+MODEL.yield.sell_through_pct+'%</span></div><input type="range" min="20" max="80" step="1" value="'+MODEL.yield.sell_through_pct+'" oninput="onSellThroughChange(this.value)"></div></div>'+
+  '<div class="control-group"><h4>Avg price adjustment</h4><div class="slider-row"><div class="slider-label"><span class="name">Multiplier applied to selling price</span><span class="value" id="psValue">'+Math.round(PRICE_MULTIPLIER*100)+'%</span></div><input type="range" min="70" max="130" step="5" value="'+Math.round(PRICE_MULTIPLIER*100)+'" oninput="onPriceShiftChange(this.value)"></div></div>'+
+  '<div class="control-group"><h4>Kg per piece</h4><div style="margin-bottom:10px;"><input type="number" id="kgInput" class="kg-input" min="0.05" max="1" step="0.01" value="'+KG_PER_UNIT.toFixed(2)+'" onchange="onKgPerPieceChange(this.value)"></div><div style="font-size:11px;color:var(--text-muted);line-height:1.4;">Average weight of one item. Default 0.18 kg (180 g). Used to convert units ↔ weight. Saves automatically.</div></div>'+
   '<div class="control-group"><h4>Fixed costs</h4><div class="toggle-item"><div class="info"><div class="name">Include fixed costs</div><div class="detail">'+fmtHKDcompact(c.monthlyFixed)+' / month</div></div><label class="toggle"><input type="checkbox" '+(MODEL.fixed_costs.enabled?'checked':'')+' onchange="onFixedToggle(this.checked)"><span class="slider"></span></label></div></div>'+
   '<div class="control-group"><h4>Variable costs</h4><div class="toggle-item"><div class="info"><div class="name">Include variable costs</div><div class="detail">'+fmtHKD(c.variableCost)+' / unit</div></div><label class="toggle"><input type="checkbox" '+(MODEL.variable_costs.enabled?'checked':'')+' onchange="onVariableToggle(this.checked)"><span class="slider"></span></label></div></div>';
 }
 function onSellThroughChange(v){MODEL.yield.sell_through_pct=parseFloat(v);setText('stValue',v+'%');renderAll();}
-function onPriceShiftChange(v){const m=parseFloat(v)/100;MODEL.pricing.tiers.forEach((t,i)=>{t.price=Math.round(originalModel.pricing.tiers[i].price*m);});setText('psValue',v+'%');renderAll();}
+function onPriceShiftChange(v){PRICE_MULTIPLIER=parseFloat(v)/100;localStorage.setItem('redress_price_multiplier',PRICE_MULTIPLIER);setText('psValue',v+'%');renderAll();}
+function onKgPerPieceChange(v){
+  const n=parseFloat(v);
+  if(isNaN(n)||n<=0){alert('Please enter a positive number for kg per piece.');return;}
+  KG_PER_UNIT=n;
+  localStorage.setItem('redress_kg_per_piece',n);
+  renderAll();
+}
 function onFixedToggle(v){MODEL.fixed_costs.enabled=v;renderAll();}
 function onVariableToggle(v){MODEL.variable_costs.enabled=v;renderAll();}
 function onTargetChange(){MODEL.target.surplus_hkd=parseFloat($el('targetInput').value)||0;renderAll();}
@@ -792,33 +858,113 @@ function onSeasonalityChange(){const el=$el('seasonalityToggle');MODEL.seasonali
 function renderMonthlyChart(c){
   const ctx=$el('monthlyChart');if(!ctx)return;
   if(monthlyChart){try{monthlyChart.destroy();}catch(e){}}
-  monthlyChart=new Chart(ctx,{type:'bar',data:{labels:MONTH_NAMES,datasets:[{label:'Units required',data:c.monthlyVolumes.map(v=>Math.ceil(v)),backgroundColor:c.monthlyVolumes.map((v,i)=>MODEL.seasonality.enabled&&MODEL.seasonality.peak_months.includes(i+1)?'#d4a373':'#40916c'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+  setText('calcAnnualUnits',Math.ceil(c.annualUnits).toLocaleString());
+  setText('calcPeakMonths',c.peakMonths&&c.peakMonths.length?c.peakMonths.map(m=>MONTH_NAMES[m-1]).join(' & '):'June & November');
+  setText('calcPeakMultiplier',c.peakMultiplier>0?c.peakMultiplier.toFixed(1)+'×':'—');
+  setText('calcWeightPeak',Math.ceil(c.peakWeightAvg).toLocaleString());
+  setText('calcWeightOffpeak',Math.ceil(c.offpeakWeightAvg).toLocaleString());
+
+  const units=c.monthlyVolumes.map(v=>Math.ceil(v));
+  const weights=units.map(u=>(u/Math.max(c.sellThrough,0.01))*KG_PER_UNIT);
+  const isPeak=(i)=>MODEL.seasonality.enabled&&MODEL.seasonality.peak_months.includes(i+1);
+
+  monthlyChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:MONTH_NAMES,
+      datasets:[{
+        label:'Units to sell (pieces)',
+        data:units,
+        backgroundColor:units.map((v,i)=>isPeak(i)?'#d4a373':'#40916c'),
+        borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        title:{
+          display:true,
+          text:'Monthly units to sell — 12-month projection',
+          color:'#1b4332',
+          font:{size:13,weight:'600'},
+          padding:{bottom:8}
+        },
+        tooltip:{
+          callbacks:{
+            title:(items)=>items[0].label+' — '+(isPeak(items[0].dataIndex)?'peak month':'off-peak'),
+            label:(cc)=>{
+              const idx=cc.dataIndex;
+              return [
+                '  '+cc.parsed.y.toLocaleString()+' units to sell',
+                '  '+Math.ceil(weights[idx]).toLocaleString()+' kg to collect',
+                '  '+fmtHKD(cc.parsed.y*c.contribution)+' contribution'
+              ];
+            }
+          }
+        }
+      },
+      scales:{
+        y:{
+          beginAtZero:true,
+          title:{display:true,text:'Units to sell (pieces)',color:'#6b7280',font:{size:11,weight:'600'}},
+          ticks:{callback:v=>v.toLocaleString()}
+        },
+        x:{
+          title:{display:true,text:'Month',color:'#6b7280',font:{size:11,weight:'600'}}
+        }
+      }
+    }
+  });
 }
 function renderCumulativeChart(c){
   const ctx=$el('cumulativeChart');if(!ctx)return;
   if(cumulativeChart){try{cumulativeChart.destroy();}catch(e){}}
   let cum=0;const cumul=c.monthlyVolumes.map(v=>{cum+=v*c.contribution;return cum;});
   const costsCum=MODEL.fixed_costs.enabled?MONTH_NAMES.map((_,i)=>c.monthlyFixed*(i+1)):MONTH_NAMES.map(()=>0);
-  cumulativeChart=new Chart(ctx,{type:'line',data:{labels:MONTH_NAMES,datasets:[
-    {label:'Cumulative contribution',data:cumul,borderColor:'#40916c',backgroundColor:'rgba(64,145,108,0.1)',borderWidth:2.5,tension:0.3,fill:true,pointRadius:3},
-    {label:'Cumulative fixed costs',data:costsCum,borderColor:'#c62828',borderWidth:1.5,borderDash:[6,4],tension:0.3,pointRadius:0},
-    {label:'Target',data:MONTH_NAMES.map(()=>c.target),borderColor:'#d4a373',borderWidth:2,borderDash:[4,4],tension:0,pointRadius:0}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtHKD(ctx.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtHKDcompact(v)}}}}});
-}
-function renderTierEditor(){
-  const el=$el('tierEditor');if(!el)return;el.innerHTML='';
-  const ws=MODEL.pricing.tiers.reduce((s,t)=>s+(t.enabled?t.weight:0),0);
-  MODEL.pricing.tiers.forEach((t,i)=>{
-    const r=document.createElement('div');r.className='tier-row';if(!t.enabled)r.style.opacity='0.5';
-    r.innerHTML='<div class="name">'+t.name+'</div><input type="number" value="'+t.price+'" onchange="updateTierPrice('+i+', this.value)"><input type="number" value="'+t.weight+'" onchange="updateTierWeight('+i+', this.value)"><div class="weight-pct">'+(ws>0?((t.weight/ws)*100).toFixed(0)+'%':'—')+'</div>';
-    el.appendChild(r);
+  cumulativeChart=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:MONTH_NAMES,
+      datasets:[
+        {label:'Cumulative contribution (HKD)',data:cumul,borderColor:'#40916c',backgroundColor:'rgba(64,145,108,0.1)',borderWidth:2.5,tension:0.3,fill:true,pointRadius:3},
+        {label:'Cumulative fixed costs (HKD)',data:costsCum,borderColor:'#c62828',borderWidth:1.5,borderDash:[6,4],tension:0.3,pointRadius:0},
+        {label:'Target (HKD)',data:MONTH_NAMES.map(()=>c.target),borderColor:'#d4a373',borderWidth:2,borderDash:[4,4],tension:0,pointRadius:0}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
+        title:{
+          display:true,
+          text:'Cumulative HKD toward target — 12-month projection',
+          color:'#1b4332',
+          font:{size:13,weight:'600'},
+          padding:{bottom:8}
+        },
+        tooltip:{
+          callbacks:{
+            label:ctx=>ctx.dataset.label.replace(' (HKD)','')+': '+fmtHKD(ctx.parsed.y)
+          }
+        }
+      },
+      scales:{
+        y:{
+          beginAtZero:true,
+          title:{display:true,text:'Cumulative amount (HKD)',color:'#6b7280',font:{size:11,weight:'600'}},
+          ticks:{callback:v=>fmtHKDcompact(v)}
+        },
+        x:{
+          title:{display:true,text:'Month',color:'#6b7280',font:{size:11,weight:'600'}}
+        }
+      }
+    }
   });
-  setText('weightedAvg',fmtHKD(getWeightedAvgPrice())+(SALES_UPLOADED?' (overridden by real ASP)':''));
-  setText('weightSum',ws);
 }
-function updateTierPrice(i,v){MODEL.pricing.tiers[i].price=parseFloat(v)||0;renderAll();}
-function updateTierWeight(i,v){MODEL.pricing.tiers[i].weight=parseFloat(v)||0;renderAll();}
-function applyNormalDistribution(){const mean=250,std=120;MODEL.pricing.tiers.forEach(t=>{t.weight=Math.round(Math.exp(-Math.pow(t.price-mean,2)/(2*std*std))*100);});renderAll();}
 
 function renderFixedCostsEditor(){
   const el=$el('fixedCostsEditor');if(!el)return;el.innerHTML='';
@@ -867,7 +1013,7 @@ function renderWaterfall(c){
   ];
   const v=steps.map(s=>s.value);
   const col=steps.map(s=>s.type==='base'?'#1b4332':s.type==='subtotal'?'#40916c':s.type==='total'?'#d4a373':s.value<0?'#c62828':'#52b788');
-  Plotly.react('waterfallChart',[{type:'waterfall',orientation:'v',x:steps.map(s=>s.label),y:v,measure:steps.map(s=>(s.type==='base'||s.type==='subtotal'||s.type==='total')?'absolute':'relative'),text:v.map(x=>fmtHKD(x)),textposition:'outside',marker:{color:col},connector:{line:{color:'#ccc'}}}],{margin:{l:50,r:20,t:20,b:60},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},yaxis:{title:'HKD per unit',tickprefix:'HK$'},xaxis:{tickangle:-15}},{responsive:true,displayModeBar:false});
+  Plotly.react('waterfallChart',[{type:'waterfall',orientation:'v',x:steps.map(s=>s.label),y:v,measure:steps.map(s=>(s.type==='base'||s.type==='subtotal'||s.type==='total')?'absolute':'relative'),text:v.map(x=>fmtHKD(x)),textposition:'outside',marker:{color:col},connector:{line:{color:'#ccc'}}}],{margin:{l:50,r:20,t:60,b:60},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},title:{text:'Per-unit economics (HKD per piece)',font:{size:13,color:'#1b4332'}},yaxis:{title:'HKD per unit',tickprefix:'HK$'},xaxis:{tickangle:-15}},{responsive:true,displayModeBar:false});
 }
 
 function renderScenarios(){
@@ -881,8 +1027,9 @@ function renderScenarios(){
     const fixed=b.monthlyFixed*s.cost_multiplier;
     const acr=fixed*12+b.target;
     const units=contr>0?acr/contr:0;
+    const weight=(units/b.sellThrough)*KG_PER_UNIT;
     const card=document.createElement('div');card.className='scenario-card '+k;
-    card.innerHTML='<h4>'+s.label+'</h4><div class="note">'+s.note+'</div><div class="stat-row"><span class="lbl">Avg price</span><span class="val">'+fmtHKD(price)+'</span></div><div class="stat-row"><span class="lbl">Contribution/unit</span><span class="val">'+fmtHKD(contr)+'</span></div><div class="stat-row"><span class="lbl">Monthly fixed</span><span class="val">'+fmtHKDcompact(fixed)+'</span></div><div class="stat-row big"><span>Units / month</span><span>'+Math.ceil(units/12).toLocaleString()+'</span></div>';
+    card.innerHTML='<h4>'+s.label+'</h4><div class="note">'+s.note+'</div><div class="stat-row"><span class="lbl">Avg price</span><span class="val">'+fmtHKD(price)+'</span></div><div class="stat-row"><span class="lbl">Contribution/unit</span><span class="val">'+fmtHKD(contr)+'</span></div><div class="stat-row"><span class="lbl">Monthly fixed</span><span class="val">'+fmtHKDcompact(fixed)+'</span></div><div class="stat-row big"><span>Units / month</span><span>'+Math.ceil(units/12).toLocaleString()+'</span></div><div class="stat-row"><span class="lbl">Weight to collect / month</span><span class="val">'+Math.ceil(weight/12).toLocaleString()+' kg</span></div>';
     g.appendChild(card);
   });
 }
@@ -893,13 +1040,13 @@ function renderHeatmaps(){
   for(let i=0;i<s.price_steps;i++)pr.push(s.price_min+(s.price_max-s.price_min)*i/(s.price_steps-1));
   for(let i=0;i<s.volume_steps;i++)vr.push(s.volume_min+(s.volume_max-s.volume_min)*i/(s.volume_steps-1));
   const z1=vr.map(v=>pr.map(p=>Math.round((p-getVariableCostPerUnit(p))*v*12-b.monthlyFixed*12)));
-  if($el('heatmap1'))Plotly.react('heatmap1',[{type:'heatmap',x:pr.map(p=>Math.round(p)),y:vr.map(v=>Math.round(v)),z:z1,colorscale:[[0,'#ffebee'],[0.4,'#fff3e0'],[0.6,'#e8f5e9'],[1,'#1b4332']],colorbar:{title:'Surplus',tickprefix:'HK$',tickformat:',.0s'}}],{margin:{l:60,r:20,t:20,b:50},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},xaxis:{title:'Avg price'},yaxis:{title:'Monthly units'}},{responsive:true,displayModeBar:false});
+  if($el('heatmap1'))Plotly.react('heatmap1',[{type:'heatmap',x:pr.map(p=>Math.round(p)),y:vr.map(v=>Math.round(v)),z:z1,colorscale:[[0,'#ffebee'],[0.4,'#fff3e0'],[0.6,'#e8f5e9'],[1,'#1b4332']],colorbar:{title:'Surplus (HKD)',tickprefix:'HK$',tickformat:',.0s'}}],{margin:{l:60,r:20,t:60,b:50},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},title:{text:'Annual surplus: Avg price × Monthly units',font:{size:13,color:'#1b4332'}},xaxis:{title:'Avg price (HKD)'},yaxis:{title:'Monthly units (pieces)'}},{responsive:true,displayModeBar:false});
   const cr=[],yr=[];
   for(let i=0;i<s.collection_cost_steps;i++)cr.push(s.collection_cost_min+(s.collection_cost_max-s.collection_cost_min)*i/(s.collection_cost_steps-1));
   for(let i=0;i<s.yield_steps;i++)yr.push(s.yield_min+(s.yield_max-s.yield_min)*i/(s.yield_steps-1));
   const fa=b.monthlyFixed*12;const tgt=MODEL.target.surplus_hkd;
   const z2=yr.map(y=>cr.map(c=>{const vc=getVariableCostPerUnit(b.avgPrice)+(c-14);const contr=b.avgPrice-vc;const acr=fa+tgt;const u=contr>0?acr/contr:0;return Math.round(u*contr-acr);}));
-  if($el('heatmap2'))Plotly.react('heatmap2',[{type:'heatmap',x:cr.map(c=>c.toFixed(0)),y:yr.map(y=>y.toFixed(0)+'%'),z:z2,colorscale:[[0,'#ffebee'],[0.4,'#fff3e0'],[0.6,'#e8f5e9'],[1,'#1b4332']],colorbar:{title:'Headroom',tickprefix:'HK$',tickformat:',.0s'}}],{margin:{l:60,r:20,t:20,b:50},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},xaxis:{title:'Collection cost'},yaxis:{title:'Sell-through %'}},{responsive:true,displayModeBar:false});
+  if($el('heatmap2'))Plotly.react('heatmap2',[{type:'heatmap',x:cr.map(c=>c.toFixed(0)),y:yr.map(y=>y.toFixed(0)+'%'),z:z2,colorscale:[[0,'#ffebee'],[0.4,'#fff3e0'],[0.6,'#e8f5e9'],[1,'#1b4332']],colorbar:{title:'Headroom (HKD)',tickprefix:'HK$',tickformat:',.0s'}}],{margin:{l:60,r:20,t:60,b:50},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},title:{text:'Surplus headroom: Collection cost × Sell-through',font:{size:13,color:'#1b4332'}},xaxis:{title:'Collection cost per unit (HKD)'},yaxis:{title:'Sell-through rate (%)'}},{responsive:true,displayModeBar:false});
 }
 function renderChannelMix(){
   const el=$el('channelMix');if(!el)return;el.innerHTML='';
@@ -1063,7 +1210,6 @@ function computeSeasonality(collections){
   return tot>0?avg.map(x=>(x/tot)*12):null;
 }
 
-// ---------- SALES PARSER ----------
 function parseSales(wb){
   let sheetName=wb.SheetNames.find(s=>/sales/i.test(s))||wb.SheetNames[0];
   const sheet=wb.Sheets[sheetName];
@@ -1208,7 +1354,6 @@ function plLineToFixedCost(label,annualValue,programme,isCos){
   return{id,name:m.name,monthly_hkd:monthly,enabled:true,category:m.category,source:'P&L',programme};
 }
 
-// ---------- PREVIEWS ----------
 function renderPreview(u){
   const el=$el('previewContent');if(!el)return;
   const c=u.collections;
@@ -1219,7 +1364,7 @@ function renderPreview(u){
   el.innerHTML='<div style="background:var(--forest);color:#fff;padding:14px;border-radius:8px;margin-bottom:14px;"><div style="font-size:11px;text-transform:uppercase;opacity:0.7;">Detected file</div><div style="font-size:22px;font-weight:700;margin-top:4px;">Warehouse Inventory</div></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+
     '<div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;color:var(--text-muted);">TOTAL COLLECTED</div><div style="font-size:22px;font-weight:700;color:var(--forest);">'+fmtNum(tk)+' kg</div><div style="font-size:11px;color:var(--text-muted);">'+c.minYear+'–'+c.maxYear+'</div></div>'+
-    '<div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;color:var(--text-muted);">'+ry+' YTD</div><div style="font-size:22px;font-weight:700;color:var(--forest);">'+fmtNum(rk)+' kg</div><div style="font-size:11px;color:var(--text-muted);">≈ '+fmtNum(rk/KG_PER_UNIT)+' items</div></div></div>'+
+    '<div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;color:var(--text-muted);">'+ry+' YTD</div><div style="font-size:22px;font-weight:700;color:var(--forest);">'+fmtNum(rk)+' kg</div><div style="font-size:11px;color:var(--text-muted);">≈ '+fmtNum(rk/KG_PER_UNIT)+' items at '+KG_PER_UNIT.toFixed(2)+' kg/pc</div></div></div>'+
     (y?'<div style="background:#f0fdf4;padding:14px;border-radius:8px;margin-top:14px;"><div style="font-weight:700;color:var(--forest);margin-bottom:8px;">Yield rates ('+y.blocks+' months)</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;"><div><div style="color:var(--text-muted);">Donation</div><div style="font-weight:700;font-size:16px;">'+(y.avg.Donation*100).toFixed(1)+'%</div></div><div><div style="color:var(--text-muted);">Sale</div><div style="font-weight:700;font-size:16px;color:var(--sage);">'+(y.avg.Sale*100).toFixed(1)+'%</div></div><div><div style="color:var(--text-muted);">Downcycling</div><div style="font-weight:700;font-size:16px;">'+(y.avg.Downcycling*100).toFixed(1)+'%</div></div><div><div style="color:var(--text-muted);">Landfill</div><div style="font-weight:700;font-size:16px;color:#c62828;">'+(y.avg.Landfill*100).toFixed(1)+'%</div></div></div></div>':'');
   show('uploadPreview');
 }
@@ -1235,7 +1380,7 @@ function renderSalesPreview(u){
     '<div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;color:var(--text-muted);">TOTAL PIECES</div><div style="font-size:22px;font-weight:700;color:var(--forest);">'+fmtNum(s.total_pieces)+'</div><div style="font-size:11px;color:var(--text-muted);">across '+years.length+' years</div></div>'+
     '<div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;color:var(--text-muted);">'+recent+' REVENUE</div><div style="font-size:22px;font-weight:700;color:var(--forest);">'+fmtHKDcompact(s.by_year[recent].total_sales)+'</div><div style="font-size:11px;color:var(--text-muted);">'+fmtNum(s.by_year[recent].total_pieces)+' pieces</div></div></div>'+
     '<div style="background:#fef3c7;padding:14px;border-radius:8px;font-size:12px;"><strong>Peak months detected:</strong> '+s.peak_months.map(m=>MONTH_NAMES[m-1]).join(' & ')+' — together '+(s.peak_share*100).toFixed(0)+'% of revenue. Off-peak avg '+fmtHKDcompact(s.offpeak_avg)+'/month.</div>'+
-    '<div style="margin-top:14px;font-size:12px;color:var(--text-muted);">When applied: real ASP will override placeholder HK$230. Real seasonality will replace placeholder weights. Real channel mix will replace placeholder 60/40.</div>';
+    '<div style="margin-top:14px;font-size:12px;color:var(--text-muted);">When applied: real ASP will override fallback. Real seasonality will replace placeholder weights. Real channel mix will replace placeholder 60/40.</div>';
   show('uploadPreview');
 }
 
