@@ -1,5 +1,5 @@
 {
-  "version": "1.2",
+  "version": "1.3",
   "last_updated": "2026-10-04",
   "currency": "HKD",
   "organization": {
@@ -34,21 +34,21 @@
     "peak_months": [6, 11],
     "peak_multiplier": 2.5,
     "monthly_weights": [0.8, 0.8, 0.9, 0.9, 1.0, 2.5, 1.0, 0.9, 0.9, 1.0, 2.5, 1.3],
-    "notes": "Placeholder — pop-up shops held in June and November."
+    "notes": "Placeholder — to be replaced by real collection data."
   },
   "fixed_costs": {
     "enabled": true,
     "items": [
-      { "id": "staff",       "name": "Staff Salaries (2 FTE + PT)", "monthly_hkd": 95000,  "enabled": true,  "category": "People" },
-      { "id": "shop_rent",   "name": "Shop Rent (Sham Shui Po)",     "monthly_hkd": 28000,  "enabled": true,  "category": "Facilities" },
-      { "id": "warehouse",   "name": "Warehouse / Sorting Space",    "monthly_hkd": 20000,  "enabled": true,  "category": "Facilities" },
-      { "id": "utilities",   "name": "Utilities (electricity, water)", "monthly_hkd": 4800, "enabled": true,  "category": "Facilities" },
-      { "id": "software",    "name": "Software (POS, accounting, CRM)", "monthly_hkd": 3500, "enabled": true, "category": "Operations" },
-      { "id": "insurance",   "name": "Insurance",                    "monthly_hkd": 2800,   "enabled": true,  "category": "Operations" },
-      { "id": "marketing",   "name": "Marketing & Communications",   "monthly_hkd": 10000,  "enabled": true,  "category": "Growth" },
-      { "id": "professional","name": "Professional Services (audit, legal)", "monthly_hkd": 5000, "enabled": true, "category": "Operations" },
-      { "id": "vehicle",     "name": "Vehicle / Logistics Lease",    "monthly_hkd": 7000,   "enabled": true,  "category": "Logistics" },
-      { "id": "depreciation","name": "Equipment Depreciation",       "monthly_hkd": 4000,   "enabled": true,  "category": "Operations" }
+      { "id": "staff",       "name": "Staff Salaries (2 FTE + PT)", "monthly_hkd": 95000,  "enabled": true,  "category": "People",     "source": "placeholder" },
+      { "id": "shop_rent",   "name": "Shop Rent (Sham Shui Po)",     "monthly_hkd": 28000,  "enabled": true,  "category": "Facilities", "source": "placeholder" },
+      { "id": "warehouse",   "name": "Warehouse / Sorting Space",    "monthly_hkd": 20000,  "enabled": true,  "category": "Facilities", "source": "placeholder" },
+      { "id": "utilities",   "name": "Utilities (electricity, water)", "monthly_hkd": 4800, "enabled": true,  "category": "Facilities", "source": "placeholder" },
+      { "id": "software",    "name": "Software (POS, accounting, CRM)", "monthly_hkd": 3500, "enabled": true, "category": "Operations", "source": "placeholder" },
+      { "id": "insurance",   "name": "Insurance",                    "monthly_hkd": 2800,   "enabled": true,  "category": "Operations", "source": "placeholder" },
+      { "id": "marketing",   "name": "Marketing & Communications",   "monthly_hkd": 10000,  "enabled": true,  "category": "Growth",     "source": "placeholder" },
+      { "id": "professional","name": "Professional Services (audit, legal)", "monthly_hkd": 5000, "enabled": true, "category": "Operations", "source": "placeholder" },
+      { "id": "vehicle",     "name": "Vehicle / Logistics Lease",    "monthly_hkd": 7000,   "enabled": true,  "category": "Logistics",  "source": "placeholder" },
+      { "id": "depreciation","name": "Equipment Depreciation",       "monthly_hkd": 4000,   "enabled": true,  "category": "Operations", "source": "placeholder" }
     ]
   },
   "variable_costs": {
@@ -78,5 +78,6 @@
     "collection_cost_min": 8, "collection_cost_max": 25, "collection_cost_steps": 10,
     "yield_min": 30, "yield_max": 70, "yield_steps": 10
   },
-  "derived_from_excel": null
+  "derived_from_excel": null,
+  "pl_actuals": null
 }
