@@ -1,5 +1,5 @@
 {
-  "version": "1.8",
+  "version": "1.9",
   "last_updated": "2026-10-04",
   "currency": "HKD",
   "organization": {
@@ -72,9 +72,9 @@
     "notes": "Placeholder — overridden by warehouse TB REPORT upload."
   },
   "scenarios": {
-    "best":  { "price_multiplier": 1.15, "volume_multiplier": 1.20, "cost_multiplier": 0.95, "label": "Best Case",  "note": "Strong pop-up turnout, higher average price, cost savings" },
-    "base":  { "price_multiplier": 1.00, "volume_multiplier": 1.00, "cost_multiplier": 1.00, "label": "Base Case",  "note": "Current assumptions hold" },
-    "worst": { "price_multiplier": 0.85, "volume_multiplier": 0.80, "cost_multiplier": 1.10, "label": "Worst Case", "note": "Weak pop-up turnout, price pressure, cost overruns" }
+    "best":  { "price_multiplier": 1.15, "volume_multiplier": 1.20, "cost_multiplier": 0.95, "label": "Best Case",  "note": "Growth continues at above-trend pace" },
+    "base":  { "price_multiplier": 1.00, "volume_multiplier": 1.00, "cost_multiplier": 1.00, "label": "Base Case",  "note": "YTD vs YTD growth rate continues" },
+    "worst": { "price_multiplier": 0.85, "volume_multiplier": 0.80, "cost_multiplier": 1.10, "label": "Worst Case", "note": "Growth slows or reverses" }
   },
   "sensitivity": {
     "price_min": 100, "price_max": 400, "price_steps": 13,
