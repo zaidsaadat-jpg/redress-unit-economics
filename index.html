@@ -6,6 +6,7 @@
 <title>Redress — Unit Economics Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
 :root {
   --forest: #1b4332;
@@ -30,7 +31,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Robo
 .brand-logo svg { width: 28px; height: 28px; }
 .brand-text h1 { font-size: 20px; letter-spacing: 2px; font-weight: 800; }
 .brand-text .tagline { font-size: 11px; color: rgba(255,255,255,0.65); letter-spacing: 0.5px; margin-top: 2px; }
-.header-meta { text-align: right; font-size: 12px; color: rgba(255,255,255,0.7); }
+.header-meta { text-align: right; font-size: 12px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 14px; }
 
 .tabs { display: flex; gap: 4px; margin-top: 18px; flex-wrap: wrap; }
 .tab { padding: 10px 24px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: none; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 14px; font-weight: 500; transition: all 0.15s; }
@@ -56,7 +57,7 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Robo
 .hero-target .hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
 
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-.metric-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid var(--sage); }
+.metric-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid var(--sage); position: relative; }
 .metric-card.warn { border-left-color: var(--sand); }
 .metric-card.highlight { background: var(--forest); color: #fff; border-left-color: var(--sand); }
 .metric-card .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
@@ -68,7 +69,14 @@ body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Robo
 
 .section { background: #fff; border-radius: 14px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 .section h3 { font-size: 17px; color: var(--forest); margin-bottom: 6px; }
-.section .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+.section .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+
+/* Source attribution */
+.source-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); font-style: italic; margin-bottom: 14px; padding: 4px 10px; background: #f3f4f6; border-radius: 6px; border-left: 3px solid var(--text-muted); }
+.source-tag::before { content: "📄"; font-style: normal; }
+.source-tag strong { font-weight: 600; color: var(--text); font-style: normal; }
+.source-tag.real { background: #ecfdf5; border-left-color: var(--success); }
+.source-tag.real strong { color: var(--success); }
 
 .chart-wrap { position: relative; }
 .chart-wrap.tall { height: 400px; }
@@ -133,6 +141,16 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
 .loading { text-align: center; padding: 60px; color: var(--text-muted); }
 .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--sage); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Provenance banner */
+.provenance { background: #f0fdf4; border-left: 4px solid var(--success); padding: 12px 18px; border-radius: 8px; font-size: 12px; color: var(--text); margin-bottom: 20px; display: none; }
+.provenance.show { display: block; }
+.provenance strong { color: var(--success); }
+
+/* Modal */
+.modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+.modal-backdrop.show { display: flex; }
+.modal { background: #fff; border-radius: 16px; max-width: 780px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 30px; }
 </style>
 </head>
 <body>
@@ -151,8 +169,11 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
       </div>
     </div>
     <div class="header-meta">
-      <div>Unit Economics Dashboard</div>
-      <div id="metaDate">Loading…</div>
+      <div>
+        <div>Unit Economics Dashboard</div>
+        <div id="metaDate">Loading…</div>
+      </div>
+      <button id="uploadBtn" onclick="openUploader()" style="background:var(--sand);color:var(--forest);border:none;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;">📂 Upload Excel</button>
     </div>
   </div>
   <div class="tabs">
@@ -168,6 +189,8 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
     <div>Loading model…</div>
   </div>
 
+  <div id="provenanceBanner" class="provenance"></div>
+
   <!-- TAB 1: TARGET VOLUME -->
   <div class="tab-panel active" id="tab-target" style="display:none;">
     <div class="hero">
@@ -176,6 +199,7 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
           <div class="hero-label">To hit your target, you need to sell</div>
           <div><span class="hero-number" id="heroUnits">—</span><span class="hero-unit">units / month</span></div>
           <div class="hero-sub" id="heroSub">Calculating…</div>
+          <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
         </div>
         <div class="hero-target">
           <label>Annual surplus target (HKD)</label>
@@ -189,7 +213,7 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
       <div class="metric-card">
         <div class="lbl">Avg selling price</div>
         <div class="val" id="mAvgPrice">—</div>
-        <div class="sub" id="mAvgPriceSub">Weighted across tiers</div>
+        <div class="sub">Weighted across tiers</div>
       </div>
       <div class="metric-card">
         <div class="lbl">Contribution / unit</div>
@@ -211,18 +235,21 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
     <div class="section">
       <h3>Monthly volume required (with seasonality)</h3>
       <div class="section-sub">Pop-up shops in June and November mean higher volume in those months.</div>
+      <div class="source-tag" data-src="model+excel">Source: <strong>revenue_model.json</strong> (placeholder seasonality)</div>
       <div class="chart-wrap medium"><canvas id="monthlyChart"></canvas></div>
     </div>
 
     <div class="section">
       <h3>Revenue vs Costs vs Target</h3>
       <div class="section-sub">Cumulative contribution toward your target across the year.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
       <div class="chart-wrap medium"><canvas id="cumulativeChart"></canvas></div>
     </div>
 
     <div class="section">
       <h3>Adjust assumptions</h3>
       <div class="section-sub">Move any slider to see the impact immediately.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
       <div class="controls-grid" id="controlsGrid"></div>
     </div>
   </div>
@@ -236,12 +263,14 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
     <div class="section">
       <h3>Per-unit economics waterfall</h3>
       <div class="section-sub">Where each HKD of selling price goes.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
       <div class="waterfall-wrap" id="waterfallChart"></div>
     </div>
 
     <div class="section">
       <h3>Price tiers</h3>
       <div class="section-sub">Edit prices and weights. Weighted average price drives the model.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder pricing tiers)</div>
       <div id="tierEditor"></div>
       <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">
         Weighted average: <strong id="weightedAvg">—</strong> · Weights sum: <strong id="weightSum">—</strong>
@@ -254,6 +283,7 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
     <div class="section">
       <h3>Fixed costs (monthly)</h3>
       <div class="section-sub">Toggle each line on or off to model different scenarios.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder fixed costs — no P&amp;L data provided)</div>
       <div id="fixedCostsEditor"></div>
       <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">
         Total monthly fixed: <strong id="fixedTotal">—</strong> · Annual: <strong id="fixedAnnual">—</strong>
@@ -263,6 +293,7 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
     <div class="section">
       <h3>Variable costs (per unit)</h3>
       <div class="section-sub">Toggle each line on or off. Percentage-based costs scale with price.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder variable costs)</div>
       <div id="variableCostsEditor"></div>
       <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">
         Total variable per unit: <strong id="variableTotal">—</strong> · Contribution per unit: <strong id="contributionTotal">—</strong>
@@ -275,31 +306,35 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
     <div class="section">
       <h3>Scenario comparison</h3>
       <div class="section-sub">Best, base, and worst case — what changes, and what it means for the target.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder scenario multipliers)</div>
       <div class="scenario-grid" id="scenarioGrid"></div>
     </div>
 
     <div class="section">
       <h3>Sensitivity: Avg price × Monthly volume</h3>
-      <div class="section-sub">Each cell shows the annual surplus (HKD). The white line is the break-even boundary. Green = surplus above target.</div>
+      <div class="section-sub">Each cell shows the annual surplus (HKD). Green = surplus above target.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder cost &amp; price assumptions)</div>
       <div class="chart-wrap tall" id="heatmap1"></div>
     </div>
 
     <div class="section">
       <h3>Sensitivity: Collection cost × Sell-through rate</h3>
       <div class="section-sub">How sensitive is the target to collection efficiency and yield quality?</div>
+      <div class="source-tag" data-src="model+excel">Source: <strong>revenue_model.json</strong> (placeholder yield &amp; cost)</div>
       <div class="chart-wrap tall" id="heatmap2"></div>
     </div>
 
     <div class="section">
       <h3>Seasonality profile</h3>
       <div class="section-sub">Monthly volume weights across the year. Toggle seasonality on/off to see the difference.</div>
+      <div class="source-tag" data-src="model+excel">Source: <strong>revenue_model.json</strong> (placeholder seasonality)</div>
       <div class="controls-grid" style="grid-template-columns: 1fr 1fr;">
         <div class="control-group">
           <h4>Seasonality</h4>
           <div class="toggle-item">
             <div class="info">
               <div class="name">Enable seasonality</div>
-              <div class="detail">Higher volume in June & November</div>
+              <div class="detail">Higher volume in June &amp; November</div>
             </div>
             <label class="toggle">
               <input type="checkbox" id="seasonalityToggle" checked onchange="onSeasonalityChange()">
@@ -309,6 +344,7 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
         </div>
         <div class="control-group">
           <h4>Channel mix</h4>
+          <div class="source-tag" data-src="model+excel" style="margin-bottom:8px;">Source: <strong>revenue_model.json</strong> (placeholder)</div>
           <div id="channelMix"></div>
         </div>
       </div>
@@ -320,13 +356,54 @@ input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius
   Redress Unit Economics Dashboard · Model assumptions are editable · Not financial advice
 </div>
 
+<!-- UPLOADER MODAL -->
+<div id="uploadModal" class="modal-backdrop">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h2 style="color:var(--forest);font-size:20px;">Upload Warehouse Inventory</h2>
+      <button onclick="closeUploader()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-muted);">×</button>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+      Drop your <code>Warehouse Inventory_2021-2025.xlsx</code> below. Data is parsed entirely in your browser — nothing is uploaded to any server.
+    </p>
+
+    <div id="dropzone" style="border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fafbfc;" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size:40px;margin-bottom:10px;">📊</div>
+      <div style="font-weight:600;color:var(--forest);margin-bottom:4px;">Click to select or drag the Excel file</div>
+      <div style="font-size:12px;color:var(--text-muted);">Accepts .xlsx, .xls</div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+    </div>
+
+    <div id="uploadProgress" style="display:none;margin-top:20px;">
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;" id="progressText">Parsing…</div>
+      <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div id="progressBar" style="height:100%;background:var(--sage);width:0%;transition:width 0.3s;"></div>
+      </div>
+    </div>
+
+    <div id="uploadPreview" style="display:none;margin-top:24px;">
+      <h3 style="color:var(--forest);font-size:15px;margin-bottom:12px;">Extracted metrics — review before applying</h3>
+      <div id="previewContent" style="font-size:13px;"></div>
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button onclick="applyUpload()" style="flex:1;background:var(--forest);color:#fff;border:none;padding:12px;border-radius:8px;font-weight:600;cursor:pointer;">✓ Apply to dashboard</button>
+        <button onclick="closeUploader()" style="background:#eee;color:var(--text);border:none;padding:12px 20px;border-radius:8px;font-weight:600;cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+
+    <div id="uploadError" style="display:none;margin-top:20px;background:#ffebee;color:#c62828;padding:14px;border-radius:8px;font-size:13px;"></div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // GLOBAL STATE
 // ============================================================
 let MODEL = null;
 let originalModel = null;
-let monthlyChart = null, cumulativeChart = null, scenarioChart = null;
+let monthlyChart = null, cumulativeChart = null;
+let EXCEL_UPLOADED = false;
+let EXCEL_FILENAME = '';
+const KG_PER_UNIT = 0.25; // ~4 items per kg, derived from Retykle records
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const fmtHKD = n => 'HK$' + Math.round(n).toLocaleString();
@@ -336,6 +413,38 @@ const fmtHKDcompact = n => {
   if (abs >= 1e3) return 'HK$' + (n/1e3).toFixed(0) + 'k';
   return 'HK$' + Math.round(n);
 };
+
+// ============================================================
+// SOURCE ATTRIBUTION
+// ============================================================
+function updateAllSources() {
+  document.querySelectorAll('.source-tag').forEach(el => {
+    const key = el.getAttribute('data-src');
+    const usesExcel = key && key.includes('excel');
+    const usesModel = key && key.includes('model');
+
+    if (EXCEL_UPLOADED && usesExcel) {
+      let txt = 'Source: <strong>' + EXCEL_FILENAME + '</strong>';
+      if (usesModel) txt += ' + <strong>revenue_model.json</strong>';
+      el.innerHTML = txt;
+      el.classList.add('real');
+    } else {
+      el.classList.remove('real');
+      // Leave original HTML as-is (set at build time)
+    }
+  });
+  // Provenance banner
+  const banner = document.getElementById('provenanceBanner');
+  if (EXCEL_UPLOADED && MODEL && MODEL.derived_from_excel) {
+    const d = MODEL.derived_from_excel;
+    banner.innerHTML = '<strong>Data provenance:</strong> Seasonality, sell-through rate, and channel mix are derived from <strong>' +
+      EXCEL_FILENAME + '</strong> (' + Math.round(d.total_kg).toLocaleString() +
+      ' kg collected, ' + d.last_upload + '). All cost, pricing, and target assumptions remain placeholders from <strong>revenue_model.json</strong>.';
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
 
 // ============================================================
 // LOAD MODEL
@@ -348,6 +457,10 @@ async function loadModel() {
     originalModel = JSON.parse(JSON.stringify(MODEL));
     document.getElementById('metaDate').textContent = 'Model v' + MODEL.version + ' · ' + MODEL.last_updated;
     document.getElementById('targetInput').value = MODEL.target.surplus_hkd;
+    if (MODEL.derived_from_excel) {
+      EXCEL_UPLOADED = true;
+      EXCEL_FILENAME = 'revenue_model.json (pre-baked from Excel)';
+    }
     renderAll();
   } catch (err) {
     document.getElementById('loadingScreen').innerHTML = '<div style="color:#c62828;">Failed to load revenue_model.json: ' + err.message + '</div>';
@@ -389,16 +502,13 @@ function calculate() {
   const target = MODEL.target.surplus_hkd;
   const periodMonths = MODEL.target.period_months || 12;
 
-  // Units per month to hit target
   const annualContributionRequired = monthlyFixed * periodMonths + target;
   const annualUnits = contribution > 0 ? annualContributionRequired / contribution : 0;
   const monthlyUnitsAvg = annualUnits / periodMonths;
 
-  // Break-even units
   const breakEvenAnnual = contribution > 0 ? (monthlyFixed * periodMonths) / contribution : 0;
   const breakEvenMonthly = breakEvenAnnual / periodMonths;
 
-  // Seasonality
   let monthlyVolumes = [];
   if (MODEL.seasonality.enabled) {
     const weights = MODEL.seasonality.monthly_weights;
@@ -408,7 +518,6 @@ function calculate() {
     monthlyVolumes = Array(12).fill(monthlyUnitsAvg);
   }
 
-  // Units to collect
   const sellThrough = MODEL.yield.sell_through_pct / 100;
   const monthlyCollectAvg = sellThrough > 0 ? monthlyUnitsAvg / sellThrough : 0;
 
@@ -441,11 +550,12 @@ function renderAll() {
   renderChannelMix();
   document.getElementById('loadingScreen').style.display = 'none';
   document.getElementById('tab-target').style.display = 'block';
+  updateAllSources();
 }
 
 function renderHero(c) {
   document.getElementById('heroUnits').textContent = Math.ceil(c.monthlyUnitsAvg).toLocaleString();
-  document.getElementById('heroSub').innerHTML = 
+  document.getElementById('heroSub').innerHTML =
     `That's <strong>${Math.ceil(c.annualUnits).toLocaleString()} units per year</strong>, ` +
     `or about <strong>${Math.ceil(c.monthlyUnitsAvg/30)} units per day</strong> across pop-up and online. ` +
     `You'll need to collect roughly <strong>${Math.ceil(c.monthlyCollectAvg).toLocaleString()} items per month</strong> ` +
@@ -464,15 +574,9 @@ function renderMetrics(c) {
 function renderControls() {
   const grid = document.getElementById('controlsGrid');
   grid.innerHTML = '';
-  
-  const controls = [
-    { id: 'sellThrough', label: 'Sell-through rate', min: 20, max: 80, value: MODEL.yield.sell_through_pct, suffix: '%', key: 'yield' },
-    { id: 'avgPriceShift', label: 'Avg price adjustment', min: 70, max: 130, value: 100, suffix: '%', key: 'price' }
-  ];
 
   const c = calculate();
 
-  // Sell-through slider
   const g1 = document.createElement('div');
   g1.className = 'control-group';
   g1.innerHTML = `
@@ -482,13 +586,12 @@ function renderControls() {
         <span class="name">% of collected items that are sellable</span>
         <span class="value" id="stValue">${MODEL.yield.sell_through_pct}%</span>
       </div>
-      <input type="range" min="20" max="80" step="1" value="${MODEL.yield.sell_through_pct}" 
+      <input type="range" min="20" max="80" step="1" value="${MODEL.yield.sell_through_pct}"
              oninput="onSellThroughChange(this.value)">
     </div>
   `;
   grid.appendChild(g1);
 
-  // Price shift slider
   const g2 = document.createElement('div');
   g2.className = 'control-group';
   g2.innerHTML = `
@@ -498,13 +601,12 @@ function renderControls() {
         <span class="name">Shift all tier prices by</span>
         <span class="value" id="psValue">100%</span>
       </div>
-      <input type="range" min="70" max="130" step="5" value="100" 
+      <input type="range" min="70" max="130" step="5" value="100"
              oninput="onPriceShiftChange(this.value)">
     </div>
   `;
   grid.appendChild(g2);
 
-  // Fixed costs toggle
   const g3 = document.createElement('div');
   g3.className = 'control-group';
   g3.innerHTML = `
@@ -522,7 +624,6 @@ function renderControls() {
   `;
   grid.appendChild(g3);
 
-  // Variable costs toggle
   const g4 = document.createElement('div');
   g4.className = 'control-group';
   g4.innerHTML = `
@@ -547,7 +648,6 @@ function onSellThroughChange(val) {
   renderAll();
 }
 function onPriceShiftChange(val) {
-  // Apply relative shift to original prices
   const multiplier = parseFloat(val) / 100;
   MODEL.pricing.tiers.forEach((t, i) => {
     t.price = Math.round(originalModel.pricing.tiers[i].price * multiplier);
@@ -586,8 +686,8 @@ function renderMonthlyChart(c) {
       datasets: [{
         label: 'Units required',
         data: c.monthlyVolumes.map(v => Math.ceil(v)),
-        backgroundColor: c.monthlyVolumes.map((v, i) => 
-          MODEL.seasonality.enabled && MODEL.seasonality.peak_months.includes(i+1) 
+        backgroundColor: c.monthlyVolumes.map((v, i) =>
+          MODEL.seasonality.enabled && MODEL.seasonality.peak_months.includes(i+1)
             ? '#d4a373' : '#40916c'),
         borderRadius: 6
       }]
@@ -598,9 +698,7 @@ function renderMonthlyChart(c) {
         legend: { display: false },
         tooltip: { callbacks: { label: c => c.parsed.y.toLocaleString() + ' units' } }
       },
-      scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Units' } }
-      }
+      scales: { y: { beginAtZero: true, title: { display: true, text: 'Units' } } }
     }
   });
 }
@@ -609,12 +707,9 @@ function renderCumulativeChart(c) {
   const ctx = document.getElementById('cumulativeChart');
   if (!ctx) return;
   if (cumulativeChart) cumulativeChart.destroy();
-  
+
   let cum = 0;
-  const cumulative = c.monthlyVolumes.map(v => {
-    cum += v * c.contribution;
-    return cum;
-  });
+  const cumulative = c.monthlyVolumes.map(v => { cum += v * c.contribution; return cum; });
   const costsCumulative = MODEL.fixed_costs.enabled
     ? MONTH_NAMES.map((_, i) => c.monthlyFixed * (i + 1))
     : MONTH_NAMES.map(() => 0);
@@ -636,9 +731,7 @@ function renderCumulativeChart(c) {
         legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
         tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtHKD(ctx.parsed.y) } }
       },
-      scales: {
-        y: { beginAtZero: true, ticks: { callback: v => fmtHKDcompact(v) } }
-      }
+      scales: { y: { beginAtZero: true, ticks: { callback: v => fmtHKDcompact(v) } } }
     }
   });
 }
@@ -650,7 +743,7 @@ function renderTierEditor() {
   const el = document.getElementById('tierEditor');
   el.innerHTML = '';
   const weightSum = MODEL.pricing.tiers.reduce((s,t) => s + (t.enabled ? t.weight : 0), 0);
-  
+
   MODEL.pricing.tiers.forEach((t, i) => {
     const row = document.createElement('div');
     row.className = 'tier-row';
@@ -663,7 +756,7 @@ function renderTierEditor() {
     `;
     el.appendChild(row);
   });
-  
+
   document.getElementById('weightedAvg').textContent = fmtHKD(getWeightedAvgPrice());
   document.getElementById('weightSum').textContent = weightSum;
 }
@@ -676,15 +769,11 @@ function updateTierWeight(i, val) {
   MODEL.pricing.tiers[i].weight = parseFloat(val) || 0;
   renderAll();
 }
-
 function applyNormalDistribution() {
-  // Compute weights from a normal PDF centered on the second tier
   const tiers = MODEL.pricing.tiers;
-  const mean = 250;
-  const std = 120;
+  const mean = 250, std = 120;
   tiers.forEach(t => {
-    const x = t.price;
-    const pdf = Math.exp(-Math.pow(x - mean, 2) / (2 * std * std));
+    const pdf = Math.exp(-Math.pow(t.price - mean, 2) / (2 * std * std));
     t.weight = Math.round(pdf * 100);
   });
   renderAll();
@@ -696,7 +785,7 @@ function applyNormalDistribution() {
 function renderFixedCostsEditor() {
   const el = document.getElementById('fixedCostsEditor');
   el.innerHTML = '';
-  
+
   MODEL.fixed_costs.items.forEach((item, i) => {
     const row = document.createElement('div');
     row.className = 'toggle-item' + (item.enabled ? '' : ' disabled');
@@ -713,7 +802,7 @@ function renderFixedCostsEditor() {
     `;
     el.appendChild(row);
   });
-  
+
   const total = getMonthlyFixed();
   document.getElementById('fixedTotal').textContent = fmtHKD(total);
   document.getElementById('fixedAnnual').textContent = fmtHKD(total * 12);
@@ -730,7 +819,7 @@ function renderVariableCostsEditor() {
   const el = document.getElementById('variableCostsEditor');
   el.innerHTML = '';
   const avgPrice = getWeightedAvgPrice();
-  
+
   MODEL.variable_costs.items.forEach((item, i) => {
     const row = document.createElement('div');
     row.className = 'toggle-item' + (item.enabled ? '' : ' disabled');
@@ -748,7 +837,7 @@ function renderVariableCostsEditor() {
     `;
     el.appendChild(row);
   });
-  
+
   const total = getVariableCostPerUnit(avgPrice);
   document.getElementById('variableTotal').textContent = fmtHKD(total);
   document.getElementById('contributionTotal').textContent = fmtHKD(avgPrice - total);
@@ -764,7 +853,7 @@ function toggleVariableCost(i, val) {
 function renderWaterfall(c) {
   const el = document.getElementById('waterfallChart');
   if (!el) return;
-  
+
   const steps = [
     { label: 'Avg price', value: c.avgPrice, type: 'base' },
     { label: 'Variable costs', value: -c.variableCost, type: 'add' },
@@ -772,15 +861,15 @@ function renderWaterfall(c) {
     { label: 'Fixed costs / unit', value: -(c.monthlyFixed / Math.max(c.monthlyUnitsAvg, 1)), type: 'add' },
     { label: 'Surplus / unit', value: c.contribution - (c.monthlyFixed / Math.max(c.monthlyUnitsAvg, 1)), type: 'total' }
   ];
-  
+
   const labels = steps.map(s => s.label);
   const values = steps.map(s => s.value);
-  const colors = steps.map(s => 
-    s.type === 'base' ? '#1b4332' : 
-    s.type === 'subtotal' ? '#40916c' : 
-    s.type === 'total' ? '#d4a373' : 
+  const colors = steps.map(s =>
+    s.type === 'base' ? '#1b4332' :
+    s.type === 'subtotal' ? '#40916c' :
+    s.type === 'total' ? '#d4a373' :
     s.value < 0 ? '#c62828' : '#52b788');
-  
+
   const trace = {
     type: 'waterfall', orientation: 'v',
     x: labels, y: values,
@@ -790,7 +879,7 @@ function renderWaterfall(c) {
     marker: { color: colors },
     connector: { line: { color: '#ccc' } }
   };
-  
+
   Plotly.react('waterfallChart', [trace], {
     margin: { l: 50, r: 20, t: 20, b: 60 },
     paper_bgcolor: 'rgba(0,0,0,0)',
@@ -807,7 +896,7 @@ function renderScenarios() {
   const grid = document.getElementById('scenarioGrid');
   grid.innerHTML = '';
   const baseC = calculate();
-  
+
   ['best', 'base', 'worst'].forEach(key => {
     const s = MODEL.scenarios[key];
     const price = baseC.avgPrice * s.price_multiplier;
@@ -818,7 +907,7 @@ function renderScenarios() {
     const annualContributionRequired = fixed * 12 + target;
     const units = contribution > 0 ? annualContributionRequired / contribution : 0;
     const monthlyUnits = units / 12;
-    
+
     const card = document.createElement('div');
     card.className = 'scenario-card ' + key;
     card.innerHTML = `
@@ -838,19 +927,14 @@ function renderScenarios() {
 // ============================================================
 function renderHeatmaps() {
   const baseC = calculate();
-  
-  // Heatmap 1: price x volume -> annual surplus
+  const s = MODEL.sensitivity;
+
   const priceRange = [];
   const volRange = [];
-  const s = MODEL.sensitivity;
-  for (let i = 0; i < s.price_steps; i++) {
-    priceRange.push(s.price_min + (s.price_max - s.price_min) * i / (s.price_steps - 1));
-  }
-  for (let i = 0; i < s.volume_steps; i++) {
-    volRange.push(s.volume_min + (s.volume_max - s.volume_min) * i / (s.volume_steps - 1));
-  }
-  
-  const z1 = volRange.map(v => 
+  for (let i = 0; i < s.price_steps; i++) priceRange.push(s.price_min + (s.price_max - s.price_min) * i / (s.price_steps - 1));
+  for (let i = 0; i < s.volume_steps; i++) volRange.push(s.volume_min + (s.volume_max - s.volume_min) * i / (s.volume_steps - 1));
+
+  const z1 = volRange.map(v =>
     priceRange.map(p => {
       const varCost = getVariableCostPerUnit(p);
       const contribution = p - varCost;
@@ -859,15 +943,13 @@ function renderHeatmaps() {
       return Math.round(annualContrib - annualFixed);
     })
   );
-  
+
   Plotly.react('heatmap1', [{
     type: 'heatmap',
     x: priceRange.map(p => Math.round(p)),
     y: volRange.map(v => Math.round(v)),
     z: z1,
-    colorscale: [
-      [0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']
-    ],
+    colorscale: [[0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']],
     hovertemplate: 'Avg price: HK$%{x}<br>Monthly units: %{y}<br>Annual surplus: HK$%{z:,}<extra></extra>',
     colorbar: { title: 'Annual surplus', tickprefix: 'HK$', tickformat: ',.0s' }
   }], {
@@ -877,42 +959,31 @@ function renderHeatmaps() {
     xaxis: { title: 'Average selling price (HKD)' },
     yaxis: { title: 'Monthly units sold' }
   }, { responsive: true, displayModeBar: false });
-  
-  // Heatmap 2: collection cost x sell-through -> annual surplus
+
   const collRange = [];
-  for (let i = 0; i < s.collection_cost_steps; i++) {
-    collRange.push(s.collection_cost_min + (s.collection_cost_max - s.collection_cost_min) * i / (s.collection_cost_steps - 1));
-  }
+  for (let i = 0; i < s.collection_cost_steps; i++) collRange.push(s.collection_cost_min + (s.collection_cost_max - s.collection_cost_min) * i / (s.collection_cost_steps - 1));
   const yieldRange = [];
-  for (let i = 0; i < s.yield_steps; i++) {
-    yieldRange.push(s.yield_min + (s.yield_max - s.yield_min) * i / (s.yield_steps - 1));
-  }
-  
-  // For each combo, compute the units needed and whether target is achievable
+  for (let i = 0; i < s.yield_steps; i++) yieldRange.push(s.yield_min + (s.yield_max - s.yield_min) * i / (s.yield_steps - 1));
+
   const target = MODEL.target.surplus_hkd;
   const fixedAnnual = baseC.monthlyFixed * 12;
-  
-  const z2 = yieldRange.map(y => 
+
+  const z2 = yieldRange.map(y =>
     collRange.map(c => {
       const varCost = getVariableCostPerUnit(baseC.avgPrice) + (c - 14);
       const contribution = baseC.avgPrice - varCost;
       const annualContribRequired = fixedAnnual + target;
       const units = contribution > 0 ? annualContribRequired / contribution : 0;
-      const collectNeeded = units / (y / 100);
-      // Return a "sustainability" score: can we physically achieve this?
-      // Higher collection cost + lower yield = harder to hit target
       return Math.round(units * contribution - annualContribRequired);
     })
   );
-  
+
   Plotly.react('heatmap2', [{
     type: 'heatmap',
     x: collRange.map(c => c.toFixed(0)),
     y: yieldRange.map(y => y.toFixed(0) + '%'),
     z: z2,
-    colorscale: [
-      [0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']
-    ],
+    colorscale: [[0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']],
     hovertemplate: 'Collection cost: HK$%{x}/unit<br>Sell-through: %{y}<br>Surplus headroom: HK$%{z:,}<extra></extra>',
     colorbar: { title: 'Headroom', tickprefix: 'HK$', tickformat: ',.0s' }
   }], {
@@ -960,6 +1031,292 @@ function showTab(name, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
   btn.classList.add('active');
   document.getElementById('tab-' + name).style.display = 'block';
+}
+
+// ============================================================
+// EXCEL UPLOADER
+// ============================================================
+let PENDING_UPDATE = null;
+
+function openUploader() {
+  document.getElementById('uploadModal').classList.add('show');
+  document.getElementById('uploadPreview').style.display = 'none';
+  document.getElementById('uploadError').style.display = 'none';
+  document.getElementById('uploadProgress').style.display = 'none';
+}
+function closeUploader() {
+  document.getElementById('uploadModal').classList.remove('show');
+  PENDING_UPDATE = null;
+}
+
+const dz = document.getElementById('dropzone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--sage)'; dz.style.background = '#f0fdf4'; });
+dz.addEventListener('dragleave', e => { e.preventDefault(); dz.style.borderColor = 'var(--border)'; dz.style.background = '#fafbfc'; });
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.style.borderColor = 'var(--border)'; dz.style.background = '#fafbfc';
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+
+async function handleFile(file) {
+  if (!file) return;
+  const errEl = document.getElementById('uploadError');
+  errEl.style.display = 'none';
+  document.getElementById('uploadProgress').style.display = 'block';
+  document.getElementById('uploadPreview').style.display = 'none';
+  setProgress(5, 'Reading file…');
+
+  try {
+    const buf = await file.arrayBuffer();
+    setProgress(20, 'Opening workbook…');
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+
+    setProgress(40, 'Parsing collection data…');
+    const collections = parseCollections(wb);
+
+    setProgress(60, 'Parsing yield / sorting data…');
+    const yields = parseYields(wb);
+
+    setProgress(75, 'Parsing resale channels…');
+    const resale = parseResale(wb);
+
+    setProgress(90, 'Computing seasonality…');
+    const seasonality = computeSeasonality(collections);
+
+    setProgress(100, 'Done');
+    PENDING_UPDATE = { collections, yields, resale, seasonality, filename: file.name };
+
+    setTimeout(() => {
+      document.getElementById('uploadProgress').style.display = 'none';
+      renderPreview(PENDING_UPDATE);
+    }, 400);
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('uploadProgress').style.display = 'none';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Failed to parse file: ' + err.message;
+  }
+}
+
+function setProgress(pct, text) {
+  document.getElementById('progressBar').style.width = pct + '%';
+  if (text) document.getElementById('progressText').textContent = text;
+}
+
+function parseCollections(wb) {
+  const sheet = wb.Sheets['IN Post consumer'];
+  if (!sheet) throw new Error('Sheet "IN Post consumer" not found');
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+
+  const monthly = {}, byChannel = {}, byPartner = {};
+  let minYear = 9999, maxYear = 0;
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i]; if (!r) continue;
+    const dateVal = r[0];
+    const project = (r[1] || '').toString().trim();
+    const partner = (r[2] || '').toString().trim();
+    const weight = parseFloat(r[4]);
+    if (!dateVal || isNaN(weight) || weight <= 0 || weight > 100000) continue;
+    const d = toDate(dateVal);
+    if (!d) continue;
+    const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    monthly[ym] = (monthly[ym] || 0) + weight;
+    if (project) byChannel[project] = (byChannel[project] || 0) + weight;
+    if (partner) byPartner[partner] = (byPartner[partner] || 0) + weight;
+    if (d.getFullYear() < minYear) minYear = d.getFullYear();
+    if (d.getFullYear() > maxYear) maxYear = d.getFullYear();
+  }
+  return { monthly, byChannel, byPartner, minYear, maxYear };
+}
+
+function toDate(v) {
+  if (v instanceof Date) return v;
+  if (typeof v === 'number') {
+    const d = XLSX.SSF.parse_date_code(v);
+    if (d) return new Date(d.y, d.m - 1, d.d);
+  }
+  if (typeof v === 'string') {
+    const d = new Date(v);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+
+function parseYields(wb) {
+  const sheet = wb.Sheets['TB REPORT'];
+  if (!sheet) return null;
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+
+  const blocks = [];
+  let current = null;
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i] || [];
+    const cell0 = (r[0] || '').toString();
+    const label = (r[6] || '').toString().toLowerCase();
+    const val = parseFloat(r[7]);
+
+    if (/^\d{4}(\.\d+)?$/.test(cell0) || cell0.match(/^\d{4}\s*\/\s*\d{2}/)) {
+      if (current && Object.keys(current).length) blocks.push(current);
+      current = { year: cell0 };
+    }
+    if (!current) current = {};
+
+    if (!isNaN(val)) {
+      if (label.startsWith('donation')) current.Donation = val;
+      else if (label.includes('sale')) current.Sale = val;
+      else if (label.includes('upcycling')) current.Upcycling = val;
+      else if (label.includes('downcycling')) current.Downcycling = val;
+      else if (label.includes('landfill')) current.Landfill = val;
+    }
+  }
+  if (current && Object.keys(current).length) blocks.push(current);
+
+  const valid = blocks.filter(b => b.Donation && (b.Sale || b.Downcycling));
+  if (!valid.length) return null;
+
+  const avg = { Donation: 0, Sale: 0, Upcycling: 0, Downcycling: 0, Landfill: 0 };
+  valid.forEach(b => {
+    avg.Donation += b.Donation || 0;
+    avg.Sale += b.Sale || 0;
+    avg.Upcycling += b.Upcycling || 0;
+    avg.Downcycling += b.Downcycling || 0;
+    avg.Landfill += b.Landfill || 0;
+  });
+  const totals = valid.map(b => (b.Donation||0)+(b.Sale||0)+(b.Upcycling||0)+(b.Downcycling||0)+(b.Landfill||0));
+  const avgTotal = totals.reduce((s,x)=>s+x,0) / totals.length;
+  Object.keys(avg).forEach(k => avg[k] = (avg[k] / valid.length) / avgTotal);
+
+  const sellThrough = avg.Sale / (avg.Sale + avg.Donation + avg.Downcycling);
+  return { blocks: valid.length, avg, sellThrough };
+}
+
+function parseResale(wb) {
+  const sheet = wb.Sheets['OUT(Resale+Downcycling)'] || wb.Sheets['OUT (Resale)'];
+  if (!sheet) return null;
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+  const channels = {};
+  let currentSection = null;
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i] || [];
+    const a = (r[0] || '').toString().trim();
+    const b = (r[1] || '').toString().trim();
+    const c = parseFloat(r[2]);
+
+    if (/Redress SSP Shop/i.test(a) || /Redress SSP Shop/i.test(b)) currentSection = 'Redress SSP Shop';
+    else if (/Retykle/i.test(a) || /Retykle/i.test(b)) currentSection = 'Retykle';
+    else if (/Green ladies/i.test(a) || /Green ladies/i.test(b)) currentSection = 'Green Ladies';
+    else if (/Hula/i.test(a) || /Hula/i.test(b)) currentSection = 'Hula';
+    else if (/Pop-up/i.test(a) || /Pop-up/i.test(b)) currentSection = 'Pop-up';
+
+    if (!isNaN(c) && c > 0 && c < 50000 && currentSection) {
+      channels[currentSection] = (channels[currentSection] || 0) + c;
+    }
+  }
+  return channels;
+}
+
+function computeSeasonality(collections) {
+  const byMonth = Array.from({ length: 12 }, () => ({ sum: 0, n: 0 }));
+  Object.entries(collections.monthly).forEach(([ym, kg]) => {
+    const m = parseInt(ym.split('-')[1]) - 1;
+    if (m >= 0 && m < 12) { byMonth[m].sum += kg; byMonth[m].n++; }
+  });
+  const avg = byMonth.map(x => x.n ? x.sum / x.n : 0);
+  const total = avg.reduce((s, x) => s + x, 0);
+  return total > 0 ? avg.map(x => (x / total) * 12) : null;
+}
+
+function renderPreview(u) {
+  const el = document.getElementById('previewContent');
+  const c = u.collections;
+  const totalKg = Object.values(c.monthly).reduce((s, x) => s + x, 0);
+  const recentYear = c.maxYear;
+  const recentKg = Object.entries(c.monthly)
+    .filter(([ym]) => ym.startsWith(recentYear))
+    .reduce((s, [, kg]) => s + kg, 0);
+
+  const channelRows = Object.entries(c.byChannel).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .map(([k, v]) => `<tr><td style="padding:4px 8px;color:var(--text-muted);">${k}</td><td style="padding:4px 8px;text-align:right;font-weight:600;">${Math.round(v).toLocaleString()} kg</td></tr>`).join('');
+  const partnerRows = Object.entries(c.byPartner).sort((a, b) => b[1] - a[1]).slice(0, 6)
+    .map(([k, v]) => `<tr><td style="padding:4px 8px;color:var(--text-muted);">${k}</td><td style="padding:4px 8px;text-align:right;font-weight:600;">${Math.round(v).toLocaleString()} kg</td></tr>`).join('');
+
+  const y = u.yields;
+  const yieldBlock = y ? `
+    <div style="background:#f0fdf4;padding:14px;border-radius:8px;margin-top:14px;">
+      <div style="font-weight:700;color:var(--forest);margin-bottom:8px;">Yield rates (averaged across ${y.blocks} monthly sortings)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;">
+        <div><div style="color:var(--text-muted);">Donation</div><div style="font-weight:700;font-size:16px;">${(y.avg.Donation*100).toFixed(1)}%</div></div>
+        <div><div style="color:var(--text-muted);">Sale / resale</div><div style="font-weight:700;font-size:16px;color:var(--sage);">${(y.avg.Sale*100).toFixed(1)}%</div></div>
+        <div><div style="color:var(--text-muted);">Downcycling</div><div style="font-weight:700;font-size:16px;">${(y.avg.Downcycling*100).toFixed(1)}%</div></div>
+        <div><div style="color:var(--text-muted);">Landfill</div><div style="font-weight:700;font-size:16px;color:#c62828;">${(y.avg.Landfill*100).toFixed(1)}%</div></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Sell-through (sale ÷ sellable pool): <strong>${(y.sellThrough*100).toFixed(1)}%</strong></div>
+    </div>` : `<div style="color:#c62828;margin-top:14px;font-size:13px;">⚠ Could not parse TB REPORT yields</div>`;
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:var(--cream);padding:14px;border-radius:8px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Total collected</div>
+        <div style="font-size:22px;font-weight:700;color:var(--forest);">${Math.round(totalKg).toLocaleString()} kg</div>
+        <div style="font-size:11px;color:var(--text-muted);">${c.minYear}–${c.maxYear}</div>
+      </div>
+      <div style="background:var(--cream);padding:14px;border-radius:8px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">${recentYear} YTD</div>
+        <div style="font-size:22px;font-weight:700;color:var(--forest);">${Math.round(recentKg).toLocaleString()} kg</div>
+        <div style="font-size:11px;color:var(--text-muted);">≈ ${Math.round(recentKg / KG_PER_UNIT).toLocaleString()} items</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+      <div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Top channels</div><table style="width:100%;font-size:12px;">${channelRows}</table></div>
+      <div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Top partners</div><table style="width:100%;font-size:12px;">${partnerRows}</table></div>
+    </div>
+    ${yieldBlock}
+    <div style="margin-top:14px;font-size:12px;color:var(--text-muted);">
+      <strong>Assumption used:</strong> 1 item ≈ ${KG_PER_UNIT} kg (${1/KG_PER_UNIT} items per kg), derived from your Retykle records.
+    </div>
+  `;
+  document.getElementById('uploadPreview').style.display = 'block';
+}
+
+function applyUpload() {
+  if (!PENDING_UPDATE || !MODEL) return;
+  const u = PENDING_UPDATE;
+
+  if (u.yields && u.yields.sellThrough > 0) {
+    MODEL.yield.sell_through_pct = Math.round(u.yields.sellThrough * 100);
+    MODEL.yield.notes = 'Derived from TB REPORT averages (' + u.yields.blocks + ' months)';
+  }
+
+  if (u.seasonality) {
+    MODEL.seasonality.monthly_weights = u.seasonality.map(w => +w.toFixed(3));
+    MODEL.seasonality.notes = 'Derived from actual collection data ' + u.collections.minYear + '–' + u.collections.maxYear;
+  }
+
+  if (u.collections.byChannel) {
+    const entries = Object.entries(u.collections.byChannel).sort((a,b)=>b[1]-a[1]);
+    const total = entries.reduce((s,[,v])=>s+v,0);
+    MODEL.channels.forEach(ch => {
+      const match = entries.find(([k]) => k.toLowerCase().includes(ch.id.replace('_',' ')));
+      if (match) ch.share_pct = Math.round((match[1]/total)*100);
+    });
+  }
+
+  MODEL.derived_from_excel = {
+    total_kg: Math.round(Object.values(u.collections.monthly).reduce((s,x)=>s+x,0)),
+    kg_per_unit: KG_PER_UNIT,
+    last_upload: new Date().toISOString().slice(0,10),
+    top_partners: Object.entries(u.collections.byPartner).sort((a,b)=>b[1]-a[1]).slice(0,10),
+    resale_channels: u.resale
+  };
+
+  EXCEL_UPLOADED = true;
+  EXCEL_FILENAME = u.filename;
+
+  renderAll();
+  closeUploader();
 }
 
 // ============================================================
