@@ -1,5 +1,5 @@
 {
-  "version": "1.7",
+  "version": "1.8",
   "last_updated": "2026-10-04",
   "currency": "HKD",
   "organization": {
@@ -11,9 +11,17 @@
   },
   "target": {
     "surplus_hkd": 200000,
-    "period_months": 12,
-    "description": "Annual surplus target",
+    "period_months": 3,
+    "period_label": "YTG 2026",
+    "period_start_month": 10,
+    "period_end_year": 2026,
+    "description": "Year-to-go 2026 surplus target (Oct–Dec 2026)",
     "editable": true
+  },
+  "manpower": {
+    "annual_hkd": 1194321,
+    "enabled": true,
+    "note": "Central manpower cost — added on top of programme P&L costs"
   },
   "pricing": {
     "effective_price": 150,
@@ -35,7 +43,7 @@
   "fixed_costs": {
     "enabled": true,
     "items": [
-      { "id": "staff",       "name": "Staff Salaries (2 FTE + PT)", "monthly_hkd": 95000,  "enabled": true,  "category": "People",     "source": "placeholder" },
+      { "id": "staff",       "name": "Staff Salaries (placeholder)", "monthly_hkd": 95000,  "enabled": true,  "category": "People",     "source": "placeholder" },
       { "id": "shop_rent",   "name": "Shop Rent (Sham Shui Po)",     "monthly_hkd": 28000,  "enabled": true,  "category": "Facilities", "source": "placeholder" },
       { "id": "warehouse",   "name": "Warehouse / Sorting Space",    "monthly_hkd": 20000,  "enabled": true,  "category": "Facilities", "source": "placeholder" },
       { "id": "utilities",   "name": "Utilities (electricity, water)", "monthly_hkd": 4800, "enabled": true,  "category": "Facilities", "source": "placeholder" },
