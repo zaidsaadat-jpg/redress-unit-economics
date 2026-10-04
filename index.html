@@ -83,13 +83,13 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 .toggle input:checked + .slider:before{transform:translateX(18px);}
 .big-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:18px;font-weight:700;color:var(--forest);font-family:ui-monospace,monospace;background:#fff;}
 .big-input:focus{outline:none;border-color:var(--sage);}
-.scenario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
 .scenario-card{background:#fff;border-radius:12px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,0.05);border-top:4px solid var(--sage);}
 .scenario-card.best{border-top-color:var(--success);}
 .scenario-card.worst{border-top-color:var(--danger);}
 .scenario-card h4{font-size:15px;margin-bottom:4px;}
 .scenario-card .note{font-size:12px;color:var(--text-muted);margin-bottom:16px;line-height:1.4;}
-.scenario-card .stat-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+.scenario-card .stat-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;}
 .scenario-card .stat-row .lbl{color:var(--text-muted);}
 .scenario-card .stat-row .val{font-weight:700;font-family:ui-monospace,monospace;}
 .scenario-card .stat-row.big{border-top:2px solid var(--border);margin-top:8px;padding-top:12px;font-size:15px;}
@@ -197,7 +197,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
           <div class="source-tag" data-src="model+sales">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
         </div>
         <div class="hero-target">
-          <label id="targetLabel">Annual surplus target (HKD)</label>
+          <label id="targetLabel">Surplus target (HKD)</label>
           <input type="number" id="targetInput" value="200000" step="10000" onchange="onTargetChange()">
           <div class="hint">Drag sliders below to explore. Numbers update live.</div>
 
@@ -242,7 +242,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 
     <div class="section" id="plSection">
       <h3>Programme economics — the real P&amp;L story</h3>
-      <div class="section-sub">Consolidated view across all uploaded programmes.</div>
+      <div class="section-sub">Consolidated view across all uploaded programmes, plus cost-to-serve comparison.</div>
       <div class="source-tag" id="plSource">Source: <strong>placeholder</strong> — upload P&amp;L files to populate</div>
       <div id="plContent"></div>
     </div>
@@ -251,8 +251,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
       <h3 id="monthlyChartTitle">Monthly units to sell</h3>
       <div class="section-sub" id="monthlyChartSubtitle">Each bar shows the <strong>units (pieces)</strong> you need to sell in that calendar month to hit the target.</div>
       <div class="info-banner" style="font-size:12px; padding:12px 16px; margin-bottom:12px;" id="monthlyCalcBanner">
-        <strong>How this is calculated:</strong>
-        The total units required (<span id="calcAnnualUnits">—</span> pieces) is split across the period using seasonality weights.
+        <strong>How this is calculated:</strong> The total units required is split across the period using seasonality weights.
       </div>
       <div class="source-tag" data-src="model+excel+sales">Source: <strong>revenue_model.json</strong> (placeholder seasonality)</div>
       <div class="chart-wrap medium"><canvas id="monthlyChart"></canvas></div>
@@ -278,9 +277,20 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
     <div class="info-banner"><strong>How to read this:</strong> Each unit generates revenue, which pays variable costs first. What's left is the <em>contribution</em>, which pays fixed costs. Whatever remains is your surplus toward the target.</div>
 
     <div class="section">
-      <h3>Per-unit economics waterfall</h3>
-      <div class="source-tag" data-src="model+sales">Source: <strong>revenue_model.json</strong> (placeholder assumptions)</div>
+      <h3>Per-unit economics waterfall — Overall, SSP Shop, and Pop-up</h3>
+      <div class="section-sub">Each waterfall shows HKD per piece: revenue → variable costs → contribution → allocated fixed costs → surplus. SSP Shop and Pop-up use their own ASP and cost allocation.</div>
+      <div class="source-tag" data-src="model+sales">Source: <strong>revenue_model.json</strong> + <strong>sales tracker</strong> + <strong>P&amp;Ls</strong></div>
       <div class="waterfall-wrap" id="waterfallChart"></div>
+      <div class="controls-grid" style="grid-template-columns:1fr 1fr;margin-top:20px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">SSP Shop</div>
+          <div class="waterfall-wrap" id="waterfallSSP"></div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Pop-up (Semi-annual + Ad-hoc)</div>
+          <div class="waterfall-wrap" id="waterfallPopUp"></div>
+        </div>
+      </div>
     </div>
 
     <div class="section">
@@ -301,8 +311,9 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
   <!-- TAB 3 -->
   <div class="tab-panel" id="tab-scenarios" style="display:none;">
     <div class="section">
-      <h3>Scenario comparison</h3>
-      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder scenario multipliers)</div>
+      <h3>Scenario comparison — trend-based projection split by programme</h3>
+      <div class="section-sub">Each scenario applies the current YTD-vs-YTD growth rate, adjusted by the scenario multiplier, then splits revenue and pieces between SSP Shop and Pop-up.</div>
+      <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> multipliers × <strong>sales tracker</strong> YTD trend</div>
       <div class="scenario-grid" id="scenarioGrid"></div>
     </div>
     <div class="section">
@@ -373,7 +384,6 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 // ============================================================
 function $el(id){return document.getElementById(id);}
 function setText(id,txt){const el=$el(id);if(!el){console.warn('Missing #'+id);return;}el.textContent=txt;}
-function setHTML(id,html){const el=$el(id);if(!el){console.warn('Missing #'+id);return;}el.innerHTML=html;}
 function hide(id){const el=$el(id);if(el)el.style.display='none';}
 function show(id){const el=$el(id);if(el)el.style.display='block';}
 function safeCall(name,fn){try{fn();}catch(e){console.error('Render "'+name+'":',e);}}
@@ -450,7 +460,6 @@ function getLoadedSources(){
       loaded:true,programme:name
     });
   });
-  // Manual input (manpower)
   s.push({
     id:'manpower',label:'Central manpower (manual)',file:'Manual input · HK$'+Math.round(MANPOWER_ANNUAL).toLocaleString()+'/year',
     detail:'HK$'+Math.round(MANPOWER_ANNUAL/12).toLocaleString()+'/month added to fixed costs',
@@ -519,7 +528,7 @@ function removeSource(id){
   setTimeout(()=>{const p=$el('sourcesPopover');if(p)p.style.display='block';},0);
 }
 function clearAllSources(){
-  if(!confirm('Clear ALL uploaded data and revert to placeholder model? Your manual inputs (kg/piece, manpower, price) will be preserved.'))return;
+  if(!confirm('Clear ALL uploaded data and revert to placeholder model? Your manual inputs will be preserved.'))return;
   EXCEL_UPLOADED=false;EXCEL_FILENAME='';SALES_UPLOADED=false;SALES_FILENAME='';PL_UPLOADED=false;
   MODEL=JSON.parse(JSON.stringify(originalModel));
   renderAll();closeSourcesPopover();
@@ -603,6 +612,80 @@ async function loadModel(){
 }
 
 // ============================================================
+// YTD COMPUTATION
+// ============================================================
+function computeYTD(salesData){
+  const years = Object.keys(salesData.by_year).sort();
+  const currentYear = years[years.length-1];
+  const priorYear = years[years.length-2] || years[0];
+  
+  const months = salesData.monthly_by_year[currentYear] || {};
+  let latestMonth = 0;
+  Object.keys(months).forEach(m => {
+    const mi = parseInt(m);
+    if((months[m].sales||0) > 0 && mi > latestMonth) latestMonth = mi;
+  });
+  if(latestMonth === 0) latestMonth = 12;
+  
+  let ytdCurrentSales = 0, ytdCurrentPieces = 0;
+  for(let m = 1; m <= latestMonth; m++){
+    if(months[m]){ ytdCurrentSales += months[m].sales||0; ytdCurrentPieces += months[m].pieces||0; }
+  }
+  
+  const priorMonths = salesData.monthly_by_year[priorYear] || {};
+  let ytdPriorSales = 0, ytdPriorPieces = 0;
+  for(let m = 1; m <= latestMonth; m++){
+    if(priorMonths[m]){ ytdPriorSales += priorMonths[m].sales||0; ytdPriorPieces += priorMonths[m].pieces||0; }
+  }
+  
+  return {
+    currentYear, priorYear, latestMonth,
+    ytdCurrentSales, ytdCurrentPieces,
+    ytdPriorSales, ytdPriorPieces,
+    salesGrowth: ytdPriorSales > 0 ? (ytdCurrentSales/ytdPriorSales - 1) : 0,
+    piecesGrowth: ytdPriorPieces > 0 ? (ytdCurrentPieces/ytdPriorPieces - 1) : 0
+  };
+}
+
+// ============================================================
+// COST TO SERVE
+// ============================================================
+function computeCostToServe(){
+  const progs = (MODEL.pl_actuals && MODEL.pl_actuals.programmes) || {};
+  const y = MODEL.sales_actuals?.by_year;
+  if(!y) return {};
+  const years = Object.keys(y).sort();
+  const recent = years[years.length-1];
+  
+  const result = {};
+  const sspData = y[recent]?.channels?.['SSP store'] || {pieces:0, sales:0};
+  const popSemi = y[recent]?.channels?.['Semi annual Pop-up'] || {pieces:0, sales:0};
+  const popAdhoc = y[recent]?.channels?.['Ad hoc mini pop-ups'] || {pieces:0, sales:0};
+  const popPieces = (popSemi.pieces||0) + (popAdhoc.pieces||0);
+  const popSales = (popSemi.sales||0) + (popAdhoc.sales||0);
+  
+  if(progs['SSP Shop']){
+    const totalCosts = progs['SSP Shop'].total_expenses + (progs['SSP Shop'].total_cost_of_sales || 0);
+    result.SSP = {
+      totalCosts,
+      units: sspData.pieces || 0,
+      costPerUnit: sspData.pieces > 0 ? totalCosts / sspData.pieces : 0,
+      asp: sspData.pieces > 0 ? sspData.sales / sspData.pieces : 0
+    };
+  }
+  if(progs['Pop-up']){
+    const totalCosts = progs['Pop-up'].total_expenses + (progs['Pop-up'].total_cost_of_sales || 0);
+    result.PopUp = {
+      totalCosts,
+      units: popPieces,
+      costPerUnit: popPieces > 0 ? totalCosts / popPieces : 0,
+      asp: popPieces > 0 ? popSales / popPieces : 0
+    };
+  }
+  return result;
+}
+
+// ============================================================
 // CALCULATIONS
 // ============================================================
 function getWeightedAvgPrice(){
@@ -656,16 +739,13 @@ function calculate(){
   const period=getPeriodInfo();
   const periodMonths=period.months;
 
-  // Period contribution needed (target + fixed costs over period)
   const periodContributionRequired=monthlyFixed*periodMonths+target;
   const periodUnits=contribution>0?periodContributionRequired/contribution:0;
   const monthlyUnitsAvg=periodUnits/periodMonths;
 
-  // Break-even
   const breakEvenPeriodUnits=contribution>0?(monthlyFixed*periodMonths)/contribution:0;
   const breakEvenMonthly=breakEvenPeriodUnits/periodMonths;
 
-  // Seasonality distribution across period months only
   let periodWeights;
   if(MODEL.seasonality.enabled){
     periodWeights=period.list.map(m=>MODEL.seasonality.monthly_weights[m-1]||1);
@@ -675,7 +755,6 @@ function calculate(){
   const totalPeriodWeight=periodWeights.reduce((s,x)=>s+x,0);
   const periodVolumes=periodWeights.map(w=>totalPeriodWeight>0?(periodUnits*w)/totalPeriodWeight:0);
 
-  // Weight metrics
   const st=MODEL.yield.sell_through_pct/100;
   const periodUnitsCollected=st>0?periodUnits/st:0;
   const monthlyUnitsCollected=periodUnitsCollected/periodMonths;
@@ -684,7 +763,6 @@ function calculate(){
   const periodWeightCollected=periodUnitsCollected*KG_PER_UNIT;
   const monthlyWeightCollected=periodWeightCollected/periodMonths;
 
-  // Peak/off-peak analysis within the period
   const peakMonthsSet=new Set(MODEL.seasonality.enabled?MODEL.seasonality.peak_months:[]);
   let peakUnits=0,offpeakUnits=0,peakCount=0,offpeakCount=0;
   periodVolumes.forEach((v,i)=>{
@@ -783,10 +861,16 @@ function renderSalesSection(){
   const recent=years[years.length-1];
   const prev=years[years.length-2];
   
+  const ytd = computeYTD(s);
+  const ytdDelta = ytd.salesGrowth;
+  const ytdPiecesDelta = ytd.piecesGrowth;
+  const ytdTrend = ytdDelta >= 0 ? '+' : '';
+  const ytdTrendColor = ytdDelta >= 0 ? 'var(--success)' : 'var(--danger)';
+
   let html='<div class="pl-grid">'+
-    '<div class="pl-card income"><div class="lbl">Real avg selling price</div><div class="val">'+fmtHKD(s.overall_asp)+'</div><div class="sub">per piece</div></div>'+
-    '<div class="pl-card profit"><div class="lbl">'+recent+' pieces sold</div><div class="val">'+fmtNum(s.by_year[recent].total_pieces)+'</div><div class="sub">'+fmtHKD(s.by_year[recent].total_sales)+' revenue</div></div>'+
-    '<div class="pl-card income"><div class="lbl">'+recent+' vs '+prev+'</div><div class="val">'+(s.by_year[recent].total_sales>=s.by_year[prev].total_sales?'+':'')+((s.by_year[recent].total_sales/s.by_year[prev].total_sales-1)*100).toFixed(0)+'%</div><div class="sub">Revenue growth</div></div>'+
+    '<div class="pl-card income"><div class="lbl">Real avg selling price</div><div class="val">'+fmtHKD(s.overall_asp)+'</div><div class="sub">per piece · all years</div></div>'+
+    '<div class="pl-card profit"><div class="lbl">YTD '+ytd.currentYear+' (Jan–'+MONTH_NAMES[ytd.latestMonth-1]+')</div><div class="val">'+fmtHKDcompact(ytd.ytdCurrentSales)+'</div><div class="sub">'+fmtNum(ytd.ytdCurrentPieces)+' pieces</div></div>'+
+    '<div class="pl-card '+(ytdDelta>=0?'income':'costs')+'"><div class="lbl">YTD vs YTD prior year</div><div class="val" style="color:'+ytdTrendColor+';">'+ytdTrend+(ytdDelta*100).toFixed(0)+'%</div><div class="sub">Rev YTD '+fmtHKDcompact(ytd.ytdPriorSales)+' → '+fmtHKDcompact(ytd.ytdCurrentSales)+' · pieces '+ytdTrend+(ytdPiecesDelta*100).toFixed(0)+'%</div></div>'+
     '<div class="pl-card warn"><div class="lbl">Channel mix ('+recent+')</div><div class="val">'+((s.by_year[recent].channels['SSP store'].sales/s.by_year[recent].total_sales)*100).toFixed(0)+'/'+((s.by_year[recent].channels['Semi annual Pop-up'].sales/s.by_year[recent].total_sales)*100).toFixed(0)+'</div><div class="sub">Shop / Pop-up %</div></div>'+
   '</div>';
   
@@ -883,6 +967,34 @@ function renderPLSection(){
       '<div class="file-note">📄 '+p.filename+'</div></div>';
   });
   html+='</div>';
+
+  const cts = computeCostToServe();
+  if(cts.SSP && cts.PopUp){
+    const ssp = cts.SSP, pop = cts.PopUp;
+    const higherIsSSP = ssp.costPerUnit > pop.costPerUnit;
+    const higherName = higherIsSSP ? 'SSP Shop' : 'Pop-up';
+    const lowerName = higherIsSSP ? 'Pop-up' : 'SSP Shop';
+    const higher = higherIsSSP ? ssp : pop;
+    const lower = higherIsSSP ? pop : ssp;
+    const diff = higher.costPerUnit - lower.costPerUnit;
+    const pctDiff = lower.costPerUnit > 0 ? (diff/lower.costPerUnit)*100 : 0;
+    
+    html+='<div style="margin-top:22px;">'+
+      '<div style="font-size:13px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Cost to serve — SSP Shop vs Pop-up</div>'+
+      '<div class="pl-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">'+
+        '<div class="pl-card"><div class="lbl">SSP Shop cost / piece</div><div class="val">'+fmtHKD(ssp.costPerUnit)+'</div><div class="sub">'+fmtHKDcompact(ssp.totalCosts)+' ÷ '+fmtNum(ssp.units)+' pieces</div></div>'+
+        '<div class="pl-card"><div class="lbl">Pop-up cost / piece</div><div class="val">'+fmtHKD(pop.costPerUnit)+'</div><div class="sub">'+fmtHKDcompact(pop.totalCosts)+' ÷ '+fmtNum(pop.units)+' pieces</div></div>'+
+        '<div class="pl-card"><div class="lbl">SSP Shop ASP</div><div class="val">'+fmtHKD(ssp.asp)+'</div><div class="sub">avg selling price</div></div>'+
+        '<div class="pl-card"><div class="lbl">Pop-up ASP</div><div class="val">'+fmtHKD(pop.asp)+'</div><div class="sub">avg selling price</div></div>'+
+      '</div>'+
+      '<div class="info-banner" style="margin-top:6px;">'+
+        '<strong>'+higherName+' costs '+fmtHKD(diff)+' more per piece than '+lowerName+' (+'+pctDiff.toFixed(0)+'%).</strong> '+
+        'SSP Shop margin: '+fmtHKD(ssp.asp - ssp.costPerUnit)+'/piece · Pop-up margin: '+fmtHKD(pop.asp - pop.costPerUnit)+'/piece. '+
+        'At these rates, <strong>'+(ssp.asp - ssp.costPerUnit > pop.asp - pop.costPerUnit ? 'SSP Shop' : 'Pop-up')+' delivers higher profit per piece sold.</strong>'+
+      '</div>'+
+    '</div>';
+  }
+
   el.innerHTML=html;
 }
 
@@ -928,11 +1040,9 @@ function renderMonthlyChart(c){
   const peakSet=new Set(MODEL.seasonality.enabled?MODEL.seasonality.peak_months:[]);
   const isPeakByIndex=(i)=>peakSet.has(c.periodList[i]);
 
-  // Update section header
   setText('monthlyChartTitle','Monthly units to sell — '+c.periodLabel);
   setText('monthlyChartSubtitle','Each bar shows the units (pieces) you need to sell in that calendar month of '+c.periodLabel+' to hit the '+fmtHKD(c.target)+' target.');
 
-  // Update calculation banner
   const b=$el('monthlyCalcBanner');
   if(b){
     const peakNameList=c.peakMonthsInPeriod.length?c.peakMonthsInPeriod.map(m=>MONTH_NAMES[m-1]).join(' & '):'—';
@@ -1050,7 +1160,6 @@ function renderCumulativeChart(c){
 function renderFixedCostsEditor(){
   const el=$el('fixedCostsEditor');if(!el)return;el.innerHTML='';
   
-  // Sort: programme items first, then placeholder
   const items=MODEL.fixed_costs.items.slice().sort((a,b)=>{
     const sa=a.source==='placeholder'?1:0,sb=b.source==='placeholder'?1:0;
     if(sa!==sb)return sa-sb;
@@ -1066,7 +1175,6 @@ function renderFixedCostsEditor(){
     el.appendChild(r);
   });
   
-  // Add manual manpower line at the end
   const mr=document.createElement('div');
   mr.className='toggle-item';
   mr.innerHTML='<div class="info"><div class="name">Central manpower (all staff) <span class="badge badge-manual">MANUAL</span><span class="badge badge-programme">Central</span></div><div class="detail">Edit in Adjust Assumptions · Annual HK$'+Math.round(MANPOWER_ANNUAL).toLocaleString()+'</div></div><div class="amount">'+fmtHKD(getManpowerMonthly())+'</div><span style="font-size:20px;">🔒</span>';
@@ -1095,34 +1203,138 @@ function toggleVariableCost(i,v){MODEL.variable_costs.items[i].enabled=v;renderA
 
 function renderWaterfall(c){
   if(typeof Plotly==='undefined')return;
-  const el=$el('waterfallChart');if(!el)return;
-  const steps=[
-    {label:'Avg price',value:c.avgPrice,type:'base'},
-    {label:'Variable costs',value:-c.variableCost,type:'add'},
-    {label:'Contribution',value:c.contribution,type:'subtotal'},
-    {label:'Fixed costs / unit',value:-(c.monthlyFixed/Math.max(c.monthlyUnitsAvg,1)),type:'add'},
-    {label:'Surplus / unit',value:c.contribution-(c.monthlyFixed/Math.max(c.monthlyUnitsAvg,1)),type:'total'}
-  ];
-  const v=steps.map(s=>s.value);
-  const col=steps.map(s=>s.type==='base'?'#1b4332':s.type==='subtotal'?'#40916c':s.type==='total'?'#d4a373':s.value<0?'#c62828':'#52b788');
-  Plotly.react('waterfallChart',[{type:'waterfall',orientation:'v',x:steps.map(s=>s.label),y:v,measure:steps.map(s=>(s.type==='base'||s.type==='subtotal'||s.type==='total')?'absolute':'relative'),text:v.map(x=>fmtHKD(x)),textposition:'outside',marker:{color:col},connector:{line:{color:'#ccc'}}}],{margin:{l:50,r:20,t:60,b:60},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},title:{text:'Per-unit economics (HKD per piece)',font:{size:13,color:'#1b4332'}},yaxis:{title:'HKD per unit',tickprefix:'HK$'},xaxis:{tickangle:-15}},{responsive:true,displayModeBar:false});
+  
+  const el=$el('waterfallChart');
+  if(el){
+    const steps=[
+      {label:'Avg price',value:c.avgPrice,type:'base'},
+      {label:'Variable costs',value:-c.variableCost,type:'add'},
+      {label:'Contribution',value:c.contribution,type:'subtotal'},
+      {label:'Fixed costs / unit',value:-(c.monthlyFixed/Math.max(c.monthlyUnitsAvg,1)),type:'add'},
+      {label:'Surplus / unit',value:c.contribution-(c.monthlyFixed/Math.max(c.monthlyUnitsAvg,1)),type:'total'}
+    ];
+    drawWaterfall('waterfallChart', steps, 'Overall (all channels blended)');
+  }
+  
+  const cts = computeCostToServe();
+  if(cts.SSP){
+    const varPerUnit = c.variableCost;
+    const sspASP = cts.SSP.asp || c.avgPrice;
+    const sspContribution = sspASP - varPerUnit;
+    const sspFixedPerUnit = cts.SSP.costPerUnit;
+    const sspSurplus = sspContribution - sspFixedPerUnit;
+    const steps = [
+      {label:'Avg price',value:sspASP,type:'base'},
+      {label:'Variable costs',value:-varPerUnit,type:'add'},
+      {label:'Contribution',value:sspContribution,type:'subtotal'},
+      {label:'Allocated fixed / unit',value:-sspFixedPerUnit,type:'add'},
+      {label:'Surplus / unit',value:sspSurplus,type:'total'}
+    ];
+    drawWaterfall('waterfallSSP', steps, 'SSP Shop · '+fmtNum(cts.SSP.units)+' pieces · '+fmtHKDcompact(cts.SSP.totalCosts)+' fixed');
+  }
+  if(cts.PopUp){
+    const varPerUnit = c.variableCost;
+    const popASP = cts.PopUp.asp || c.avgPrice;
+    const popContribution = popASP - varPerUnit;
+    const popFixedPerUnit = cts.PopUp.costPerUnit;
+    const popSurplus = popContribution - popFixedPerUnit;
+    const steps = [
+      {label:'Avg price',value:popASP,type:'base'},
+      {label:'Variable costs',value:-varPerUnit,type:'add'},
+      {label:'Contribution',value:popContribution,type:'subtotal'},
+      {label:'Allocated fixed / unit',value:-popFixedPerUnit,type:'add'},
+      {label:'Surplus / unit',value:popSurplus,type:'total'}
+    ];
+    drawWaterfall('waterfallPopUp', steps, 'Pop-up · '+fmtNum(cts.PopUp.units)+' pieces · '+fmtHKDcompact(cts.PopUp.totalCosts)+' fixed');
+  }
+}
+
+function drawWaterfall(divId, steps, title){
+  if(!$el(divId)) return;
+  const values = steps.map(s=>s.value);
+  const colors = steps.map(s=>s.type==='base'?'#1b4332':s.type==='subtotal'?'#40916c':s.type==='total'?'#d4a373':s.value<0?'#c62828':'#52b788');
+  Plotly.react(divId, [{
+    type:'waterfall', orientation:'v',
+    x: steps.map(s=>s.label), y: values,
+    measure: steps.map(s=>(s.type==='base'||s.type==='subtotal'||s.type==='total')?'absolute':'relative'),
+    text: values.map(x=>fmtHKD(x)),
+    textposition:'outside',
+    marker:{color:colors},
+    connector:{line:{color:'#ccc'}}
+  }], {
+    margin:{l:50,r:20,t:50,b:60},
+    paper_bgcolor:'rgba(0,0,0,0)',
+    font:{size:11},
+    title:{text:title,font:{size:12,color:'#1b4332'}},
+    yaxis:{title:'HKD per unit',tickprefix:'HK$'},
+    xaxis:{tickangle:-15}
+  }, {responsive:true,displayModeBar:false});
 }
 
 function renderScenarios(){
   const g=$el('scenarioGrid');if(!g)return;g.innerHTML='';
-  const b=calculate();
+  const baseC=calculate();
+  const salesData = MODEL.sales_actuals;
+  
+  if(!salesData){
+    g.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:14px;background:#f9fafb;border-radius:8px;grid-column:1/-1;">Upload the sales tracker to enable trend-based scenario projections split by SSP Shop and Pop-up.</div>';
+    return;
+  }
+  
+  const ytd = computeYTD(salesData);
+  const channelMix = salesData.channel_shares || {};
+  const sspShare = channelMix['SSP store'] || 0.5;
+  const popShare = (channelMix['Semi annual Pop-up'] || 0.4) + (channelMix['Ad hoc mini pop-ups'] || 0.1);
+  
+  const periodStart = MODEL.target.period_start_month || 10;
+  const periodMonths = MODEL.target.period_months || 3;
+  const priorMonths = salesData.monthly_by_year[ytd.priorYear] || {};
+  let priorPeriodSales = 0, priorPeriodPieces = 0;
+  for(let i=0; i<periodMonths; i++){
+    const mm = ((periodStart - 1 + i) % 12) + 1;
+    if(priorMonths[mm]){
+      priorPeriodSales += priorMonths[mm].sales || 0;
+      priorPeriodPieces += priorMonths[mm].pieces || 0;
+    }
+  }
+  
   ['best','base','worst'].forEach(k=>{
-    const s=MODEL.scenarios[k];
-    const price=b.avgPrice*s.price_multiplier;
-    const vc=b.variableCost*s.cost_multiplier;
-    const contr=price-vc;
-    const fixed=b.monthlyFixed*s.cost_multiplier;
-    const periodContrib=fixed*b.periodMonths+b.target;
-    const periodUnits=contr>0?periodContrib/contr:0;
-    const monthlyUnits=periodUnits/b.periodMonths;
-    const weight=(periodUnits/b.sellThrough)*KG_PER_UNIT;
-    const card=document.createElement('div');card.className='scenario-card '+k;
-    card.innerHTML='<h4>'+s.label+'</h4><div class="note">'+s.note+'</div><div class="stat-row"><span class="lbl">Avg price</span><span class="val">'+fmtHKD(price)+'</span></div><div class="stat-row"><span class="lbl">Contribution/unit</span><span class="val">'+fmtHKD(contr)+'</span></div><div class="stat-row"><span class="lbl">Monthly fixed</span><span class="val">'+fmtHKDcompact(fixed)+'</span></div><div class="stat-row big"><span>Units / month ('+b.periodMonths+'-mo)</span><span>'+Math.ceil(monthlyUnits).toLocaleString()+'</span></div><div class="stat-row"><span class="lbl">Total units for '+b.periodLabel+'</span><span class="val">'+Math.ceil(periodUnits).toLocaleString()+'</span></div><div class="stat-row"><span class="lbl">Weight to collect / month</span><span class="val">'+Math.ceil(weight/b.periodMonths).toLocaleString()+' kg</span></div>';
+    const s = MODEL.scenarios[k];
+    const growthFactor = Math.max(0, 1 + ytd.salesGrowth * s.volume_multiplier);
+    const projSales = priorPeriodSales * growthFactor * s.price_multiplier;
+    const projPieces = priorPeriodPieces * growthFactor;
+    
+    const sspSales = projSales * sspShare;
+    const sspPieces = projPieces * sspShare;
+    const popSales = projSales * popShare;
+    const popPieces = projPieces * popShare;
+    
+    const monthlyFixed = baseC.monthlyFixed * s.cost_multiplier;
+    const periodFixed = monthlyFixed * periodMonths;
+    const periodVarCosts = projPieces * baseC.variableCost;
+    const periodContribution = projSales - periodVarCosts;
+    const periodProfit = periodContribution - periodFixed;
+    const meetsTarget = periodProfit >= baseC.target;
+    
+    const card = document.createElement('div');
+    card.className = 'scenario-card ' + k;
+    card.innerHTML =
+      '<h4>'+s.label+'</h4>'+
+      '<div class="note">'+s.note+' · YTD growth '+(ytd.salesGrowth*100).toFixed(0)+'%</div>'+
+      '<div style="font-size:11px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin-top:10px;margin-bottom:6px;">'+MODEL.target.period_label+' projection</div>'+
+      '<div class="stat-row"><span class="lbl">Total revenue</span><span class="val">'+fmtHKD(projSales)+'</span></div>'+
+      '<div class="stat-row"><span class="lbl">Total pieces</span><span class="val">'+fmtNum(projPieces)+'</span></div>'+
+      '<div class="stat-row"><span class="lbl">Variable costs</span><span class="val">'+fmtHKD(periodVarCosts)+'</span></div>'+
+      '<div class="stat-row"><span class="lbl">Fixed costs ('+periodMonths+' mo)</span><span class="val">'+fmtHKD(periodFixed)+'</span></div>'+
+      '<div class="stat-row big"><span>Profit</span><span style="color:'+(meetsTarget?'var(--success)':'var(--danger)')+';">'+fmtHKD(periodProfit)+'</span></div>'+
+      '<div style="font-size:11px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin-top:14px;margin-bottom:6px;">Split by programme</div>'+
+      '<table style="width:100%;font-size:12px;">'+
+        '<tr><td style="color:var(--text-muted);padding:3px 0;">SSP Shop</td><td style="text-align:right;font-weight:600;">'+fmtNum(sspPieces)+' pcs · '+fmtHKDcompact(sspSales)+'</td></tr>'+
+        '<tr><td style="color:var(--text-muted);padding:3px 0;">Pop-up</td><td style="text-align:right;font-weight:600;">'+fmtNum(popPieces)+' pcs · '+fmtHKDcompact(popSales)+'</td></tr>'+
+      '</table>'+
+      '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:'+(meetsTarget?'var(--success)':'var(--danger)')+';font-weight:700;">'+
+        (meetsTarget ? '✓ Meets target ('+fmtHKD(baseC.target)+') by '+fmtHKD(periodProfit - baseC.target) : '⚠ Short of target by '+fmtHKD(baseC.target - periodProfit))+
+      '</div>';
     g.appendChild(card);
   });
 }
@@ -1418,6 +1630,13 @@ function parsePL(wb){
     const v=parseFloat(r[1]);if(isNaN(v))continue;
     if(sec==='income')income[lbl]=v;else if(sec==='exp')expenses[lbl]=v;else if(sec==='cos')costOfSales[lbl]=v;
   }
+  // Compute totals from line items rather than from "Total" cells, which are
+  // formulas that SheetJS reads as strings if the file has no cached values.
+  const sumObj = o => Object.values(o).reduce((s,v) => s + (typeof v === 'number' ? v : 0), 0);
+  ti = sumObj(income);
+  te = sumObj(expenses);
+  tcs = sumObj(costOfSales);
+  op = ti - tcs - te;
   return{programme,rawProgramme:raw,year,income,expenses,costOfSales,totalIncome:ti,totalCostOfSales:tcs,totalExpenses:te,operatingProfit:op};
 }
 function plLineToFixedCost(label,annualValue,programme,isCos){
