@@ -214,7 +214,6 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
       <div class="metric-card highlight"><div class="lbl">Units to collect / month</div><div class="val" id="mCollect">—</div><div class="sub" id="mCollectSub">At 45% sell-through</div></div>
     </div>
 
-    <!-- NEW: Sales record -->
     <div class="section" id="salesSection">
       <h3>Sales record — actual revenue, units, and pricing by channel</h3>
       <div class="section-sub">Every transaction Redress has recorded since 2020, by channel. This is the file that unlocks real unit economics.</div>
@@ -646,7 +645,7 @@ function renderAll(){
 function renderHero(c){
   setText('heroUnits',Math.ceil(c.monthlyUnitsAvg).toLocaleString());
   const el=$el('heroSub');
-  if(el)el.innerHTML=`That's <strong>${Math.ceil(c.annualUnits).toLocaleString()} units per year</strong>, or about <strong>${Math.ceil(c.monthlyUnitsAvg/30)} units per day</strong>. You'll need to collect roughly <strong>${Math.ceil(c.monthlyCollectAvg).toLocaleString()} items per month</strong> at ${MODEL.yield.sell_through_pct}% sell-through.`;
+  if(el)el.innerHTML='That is <strong>'+Math.ceil(c.annualUnits).toLocaleString()+' units per year</strong>, or about <strong>'+Math.ceil(c.monthlyUnitsAvg/30)+' units per day</strong>. You will need to collect roughly <strong>'+Math.ceil(c.monthlyCollectAvg).toLocaleString()+' items per month</strong> at '+MODEL.yield.sell_through_pct+'% sell-through.';
 }
 function renderMetrics(c){
   setText('mAvgPrice',fmtHKD(c.avgPrice));
@@ -673,7 +672,6 @@ function renderSalesSection(){
   const recent=years[years.length-1];
   const prev=years[years.length-2];
   
-  // Summary cards
   let html='<div class="pl-grid">'+
     '<div class="pl-card income"><div class="lbl">Real avg selling price</div><div class="val">'+fmtHKD(s.overall_asp)+'</div><div class="sub">'+(s.overall_asp<200?'Down from HK$230 placeholder':'')+'</div></div>'+
     '<div class="pl-card profit"><div class="lbl">'+recent+' pieces sold</div><div class="val">'+fmtNum(s.by_year[recent].total_pieces)+'</div><div class="sub">'+fmtHKD(s.by_year[recent].total_sales)+' revenue</div></div>'+
@@ -681,7 +679,6 @@ function renderSalesSection(){
     '<div class="pl-card warn"><div class="lbl">Channel mix ('+recent+')</div><div class="val">'+((s.by_year[recent].channels['SSP store'].sales/s.by_year[recent].total_sales)*100).toFixed(0)+'/'+((s.by_year[recent].channels['Semi annual Pop-up'].sales/s.by_year[recent].total_sales)*100).toFixed(0)+'</div><div class="sub">Shop / Pop-up %</div></div>'+
   '</div>';
   
-  // Channel table
   const mainChannels=['SSP store','Semi annual Pop-up','Ad hoc mini pop-ups'];
   html+='<div style="margin-top:20px;"><div style="font-weight:700;font-size:13px;color:var(--forest);margin-bottom:8px;">Revenue by channel &amp; year</div>';
   html+='<table class="sales-table"><thead><tr><th>Channel</th>';
@@ -693,7 +690,6 @@ function renderSalesSection(){
       const c=s.by_year[y].channels[ch]||{sales:0,pieces:0};
       html+='<td class="num">'+(c.sales>0?fmtHKDcompact(c.sales):'—')+'</td>';
     });
-    // ASP over most recent year with data
     let asp=0;
     for(let i=years.length-1;i>=0;i--){const c=s.by_year[years[i]].channels[ch];if(c&&c.asp>0){asp=c.asp;break;}}
     html+='<td class="num" style="font-weight:700;color:var(--forest);">'+(asp>0?fmtHKD(asp):'—')+'</td></tr>';
@@ -706,24 +702,23 @@ function renderSalesSection(){
   html+='<td></td></tr>';
   html+='</tbody></table></div>';
   
-  // Insight banners
-  const shopY0=s.by_year[prev].channels['SSP store']||{asp:0};
-  const shopY1=s.by_year[recent].channels['SSP store']||{asp:0};
+  html+='<div class="chart-wrap medium" style="margin-top:20px;"><canvas id="salesChart"></canvas></div>';
+  
+  const shopY0=s.by_year[prev]&&s.by_year[prev].channels['SSP store']?s.by_year[prev].channels['SSP store']:{asp:0};
+  const shopY1=s.by_year[recent]&&s.by_year[recent].channels['SSP store']?s.by_year[recent].channels['SSP store']:{asp:0};
   if(shopY0.asp>0&&shopY1.asp>0&&shopY1.asp<shopY0.asp*0.95){
-    html+='<div class="warn-banner" style="margin-top:16px;"><strong>⚠ SSP Shop ASP is declining:</strong> '+fmtHKD(shopY0.asp)+' ('+prev+') → '+fmtHKD(shopY1.asp)+' ('+recent+'), a '+((shopY1.asp/shopY0.asp-1)*100).toFixed(0)+'% drop. More pieces sold but at lower average price. Ask the board: deliberate clearance strategy or pricing drift?</div>';
+    html+='<div class="warn-banner" style="margin-top:16px;"><strong>⚠ SSP Shop ASP is declining:</strong> '+fmtHKD(shopY0.asp)+' ('+prev+') to '+fmtHKD(shopY1.asp)+' ('+recent+'), a '+((shopY1.asp/shopY0.asp-1)*100).toFixed(0)+'% drop. More pieces sold but at lower average price. Ask the board: deliberate clearance strategy or pricing drift?</div>';
   }
-  if(s.by_year[recent].channels['Ad hoc mini pop-ups']&&s.by_year[recent].channels['Ad hoc mini pop-ups'].sales>50000){
-    html+='<div class="success-banner" style="margin-top:12px;"><strong>💡 Ad hoc mini pop-ups are a new growth channel:</strong> '+fmtHKD(s.by_year[recent].channels['Ad hoc mini pop-ups'].sales)+' in '+recent+' — didn\\'t exist before. ASP '+fmtHKD(s.by_year[recent].channels['Ad hoc mini pop-ups'].asp)+'/piece. Worth investing further.</div>';
+  const miniP=s.by_year[recent]&&s.by_year[recent].channels['Ad hoc mini pop-ups']?s.by_year[recent].channels['Ad hoc mini pop-ups']:{sales:0,asp:0};
+  if(miniP.sales>50000){
+    html+='<div class="success-banner" style="margin-top:12px;"><strong>💡 Ad hoc mini pop-ups are a new growth channel:</strong> '+fmtHKD(miniP.sales)+' in '+recent+' — did not exist before. ASP '+fmtHKD(miniP.asp)+'/piece. Worth investing further.</div>';
   }
-  // Seasonality callout
-  const peakMonths=s.peak_months||[];
-  if(peakMonths.length){
-    html+='<div class="info-banner" style="margin-top:12px;"><strong>Seasonality is extreme:</strong> '+peakMonths.map(m=>MONTH_NAMES[m-1]).join(' and ')+' together generate over '+(s.peak_share*100).toFixed(0)+'% of annual revenue. Off-peak months average '+fmtHKDcompact(s.offpeak_avg)+'.</div>';
+  if(s.peak_months&&s.peak_months.length){
+    html+='<div class="info-banner" style="margin-top:12px;"><strong>Seasonality is extreme:</strong> '+s.peak_months.map(m=>MONTH_NAMES[m-1]).join(' and ')+' together generate over '+(s.peak_share*100).toFixed(0)+'% of annual revenue. Off-peak months average '+fmtHKDcompact(s.offpeak_avg)+'.</div>';
   }
   
   el.innerHTML=html;
   
-  // Chart
   if(salesChart){try{salesChart.destroy();}catch(e){}}
   const ctx=$el('salesChart');
   if(ctx){
@@ -761,7 +756,7 @@ function renderPLSection(){
     '<div class="pl-card income"><div class="lbl">Total income</div><div class="val">'+fmtHKD(totI)+'</div></div>'+
     '<div class="pl-card costs"><div class="lbl">Total costs</div><div class="val">'+fmtHKD(totC)+'</div></div>'+
     '<div class="pl-card profit"><div class="lbl">Operating profit</div><div class="val">'+fmtHKD(totP)+'</div></div>'+
-    '<div class="pl-card '+(totP>=target?'income':'gap')+'"><div class="lbl">vs Target</div><div class="val">'+(totP>=target?'✓ '+(totP/target).toFixed(1)+'×':'⚠')+'</div><div class="sub">Target '+fmtHKD(target)+'</div></div>'+
+    '<div class="pl-card '+(totP>=target?'income':'gap')+'"><div class="lbl">vs Target</div><div class="val">'+(totP>=target?'✓ '+(totP/target).toFixed(1)+'x':'⚠')+'</div><div class="sub">Target '+fmtHKD(target)+'</div></div>'+
   '</div>';
   
   names.sort((a,b)=>progs[b].operating_profit-progs[a].operating_profit);
@@ -947,7 +942,7 @@ async function handleFile(file){
     const sheets=wb.SheetNames;
     const isWarehouse=sheets.includes('IN Post consumer');
     const isPL=sheets.includes('Profit and Loss');
-    const isSales=sheets.some(s=>/sales/i.test(s))||detectSalesSheet(wb);
+    const isSales=detectSalesSheet(wb);
     
     if(isWarehouse){
       setProgress(40,'Parsing warehouse…');
@@ -1105,11 +1100,9 @@ function parseSales(wb){
     }
   }
   
-  // Compute overall ASP
   Object.values(byYear).forEach(y=>{allSales+=y.total_sales;allPieces+=y.total_pieces;});
   const overallAsp=allPieces>0?allSales/allPieces:0;
   
-  // Compute seasonality: average monthly weights across years (ignoring incomplete years)
   const years=Object.keys(byYear).sort();
   const monthTotals=Array.from({length:12},()=>({sum:0,n:0}));
   years.forEach(y=>{
@@ -1126,7 +1119,6 @@ function parseSales(wb){
   const monthTotal=monthAvg.reduce((s,x)=>s+x,0);
   const monthWeights=monthTotal>0?monthAvg.map(x=>(x/monthTotal)*12):null;
   
-  // Peak months (top 2 by weight)
   const peaks=[];
   monthAvg.forEach((v,i)=>peaks.push({i:i+1,v}));
   peaks.sort((a,b)=>b.v-a.v);
@@ -1135,7 +1127,6 @@ function parseSales(wb){
   const offPeakSum=monthTotal-(peaks[0].v+peaks[1].v);
   const offPeakAvg=offPeakSum/10;
   
-  // Channel shares over most recent 2 years
   const recent=years.slice(-2);
   const channelShares={};
   let recentTotal=0;
