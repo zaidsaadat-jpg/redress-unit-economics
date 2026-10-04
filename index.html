@@ -8,139 +8,139 @@
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <style>
-:root {
-  --forest: #1b4332;
-  --sage: #40916c;
-  --sage-light: #52b788;
-  --sand: #d4a373;
-  --cream: #fefae0;
-  --bg: #faf9f6;
-  --text: #1a1a1a;
-  --text-muted: #6b7280;
-  --border: #e5e7eb;
-  --danger: #c62828;
-  --success: #2d6a4f;
-  --warn: #d97706;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
-.header { background: var(--forest); color: #fff; padding: 20px 40px; }
-.header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-.brand { display: flex; align-items: center; gap: 14px; }
-.brand-logo { width: 46px; height: 46px; border-radius: 10px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.brand-logo svg { width: 28px; height: 28px; }
-.brand-text h1 { font-size: 20px; letter-spacing: 2px; font-weight: 800; }
-.brand-text .tagline { font-size: 11px; color: rgba(255,255,255,0.65); letter-spacing: 0.5px; margin-top: 2px; }
-.header-meta { text-align: right; font-size: 12px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 14px; }
-.tabs { display: flex; gap: 4px; margin-top: 18px; flex-wrap: wrap; }
-.tab { padding: 10px 24px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: none; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 14px; font-weight: 500; transition: all 0.15s; }
-.tab:hover { background: rgba(255,255,255,0.15); color: #fff; }
-.tab.active { background: var(--bg); color: var(--forest); font-weight: 600; }
-.container { max-width: 1600px; margin: 0 auto; padding: 25px 20px; }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-.hero { background: #fff; border-radius: 14px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); border-left: 5px solid var(--sage); }
-.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
-@media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
-.hero-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; }
-.hero-number { font-size: 52px; font-weight: 800; color: var(--forest); line-height: 1; }
-.hero-unit { font-size: 18px; color: var(--text-muted); font-weight: 500; margin-left: 8px; }
-.hero-sub { font-size: 14px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
-.hero-target { background: var(--cream); border-radius: 10px; padding: 20px; }
-.hero-target label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: block; margin-bottom: 8px; }
-.hero-target input { font-size: 28px; font-weight: 700; border: 2px solid var(--border); border-radius: 8px; padding: 8px 14px; width: 100%; background: #fff; color: var(--forest); font-family: inherit; }
-.hero-target input:focus { outline: none; border-color: var(--sage); }
-.hero-target .hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
-.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-.metric-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid var(--sage); }
-.metric-card.warn { border-left-color: var(--sand); }
-.metric-card.highlight { background: var(--forest); color: #fff; border-left-color: var(--sand); }
-.metric-card .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
-.metric-card.highlight .lbl { color: rgba(255,255,255,0.7); }
-.metric-card .val { font-size: 26px; font-weight: 700; color: var(--forest); }
-.metric-card.highlight .val { color: #fff; }
-.metric-card .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-.metric-card.highlight .sub { color: rgba(255,255,255,0.6); }
-.section { background: #fff; border-radius: 14px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-.section h3 { font-size: 17px; color: var(--forest); margin-bottom: 6px; }
-.section .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
-.source-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); font-style: italic; margin-bottom: 14px; padding: 4px 10px; background: #f3f4f6; border-radius: 6px; border-left: 3px solid var(--text-muted); }
-.source-tag::before { content: "📄"; font-style: normal; }
-.source-tag strong { font-weight: 600; color: var(--text); font-style: normal; }
-.source-tag.real { background: #ecfdf5; border-left-color: var(--success); }
-.source-tag.real strong { color: var(--success); }
-.chart-wrap { position: relative; }
-.chart-wrap.tall { height: 400px; }
-.chart-wrap.medium { height: 320px; }
-.controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.control-group { padding: 16px; background: #f8f9fa; border-radius: 10px; }
-.control-group h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 14px; }
-.slider-row { margin-bottom: 14px; }
-.slider-row:last-child { margin-bottom: 0; }
-.slider-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
-.slider-label .name { color: var(--text); }
-.slider-label .value { font-weight: 700; color: var(--forest); font-family: ui-monospace, monospace; }
-input[type="range"] { width: 100%; -webkit-appearance: none; height: 6px; border-radius: 3px; background: #d1d5db; outline: none; }
-input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--sage); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
-.toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-.toggle-item:last-child { border-bottom: none; }
-.toggle-item .info { flex: 1; }
-.toggle-item .info .name { font-size: 13px; color: var(--text); }
-.toggle-item .info .detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-.toggle-item .amount { font-weight: 600; font-family: ui-monospace, monospace; font-size: 13px; margin-right: 12px; color: var(--forest); }
-.toggle-item.disabled .info .name,
-.toggle-item.disabled .amount { color: #9ca3af; text-decoration: line-through; }
-.toggle { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.toggle .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #cbd5e1; border-radius: 24px; transition: 0.2s; }
-.toggle .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-.toggle input:checked + .slider { background: var(--sage); }
-.toggle input:checked + .slider:before { transform: translateX(18px); }
-.tier-row { display: grid; grid-template-columns: 1fr 90px 80px 60px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.tier-row:last-child { border-bottom: none; }
-.tier-row .name { font-size: 13px; }
-.tier-row input { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: ui-monospace, monospace; width: 100%; }
-.tier-row .weight-pct { font-size: 13px; font-weight: 600; color: var(--sage); text-align: right; }
-.scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-.scenario-card { background: #fff; border-radius: 12px; padding: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 4px solid var(--sage); }
-.scenario-card.best { border-top-color: var(--success); }
-.scenario-card.worst { border-top-color: var(--danger); }
-.scenario-card h4 { font-size: 15px; margin-bottom: 4px; }
-.scenario-card .note { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
-.scenario-card .stat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
-.scenario-card .stat-row .lbl { color: var(--text-muted); }
-.scenario-card .stat-row .val { font-weight: 700; font-family: ui-monospace, monospace; }
-.scenario-card .stat-row.big { border-top: 2px solid var(--border); margin-top: 8px; padding-top: 12px; font-size: 15px; }
-.scenario-card .stat-row.big .val { color: var(--forest); }
-.waterfall-wrap { height: 420px; position: relative; }
-.info-banner { background: var(--cream); border-left: 4px solid var(--sand); padding: 14px 18px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: var(--text); margin-bottom: 20px; }
-.info-banner strong { color: var(--forest); }
-.warn-banner { background: #fef3c7; border-left: 4px solid var(--warn); padding: 14px 18px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: var(--text); margin-bottom: 20px; }
-.warn-banner strong { color: #92400e; }
-.footer { text-align: center; color: var(--text-muted); font-size: 12px; padding: 30px; }
-.loading { text-align: center; padding: 60px; color: var(--text-muted); }
-.spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--sage); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.provenance { background: #f0fdf4; border-left: 4px solid var(--success); padding: 12px 18px; border-radius: 8px; font-size: 12px; color: var(--text); margin-bottom: 20px; display: none; }
-.provenance.show { display: block; }
-.provenance strong { color: var(--success); }
-.modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
-.modal-backdrop.show { display: flex; }
-.modal { background: #fff; border-radius: 16px; max-width: 820px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 30px; }
-/* P&L summary */
-.pl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
-.pl-card { padding: 16px; border-radius: 10px; border-left: 4px solid var(--sage); background: #f9fafb; }
-.pl-card.income { border-left-color: var(--success); background: #ecfdf5; }
-.pl-card.costs { border-left-color: var(--danger); background: #fef2f2; }
-.pl-card.profit { border-left-color: var(--sand); background: var(--cream); }
-.pl-card.gap { border-left-color: var(--warn); background: #fef3c7; }
-.pl-card .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
-.pl-card .val { font-size: 24px; font-weight: 700; color: var(--forest); }
-.pl-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-.pl-card.costs .val { color: var(--danger); }
-.pl-card.gap .val { color: #92400e; }
-.pl-bar { display: flex; height: 34px; border-radius: 6px; overflow: hidden; margin: 10px 0 6px; font-size: 11px; font-weight: 600; color: #fff; }
-.pl-bar > div { display: flex; align-items: center; justify-content: center; padding: 0 10px; white-space: nowrap; }
+:root{--forest:#1b4332;--sage:#40916c;--sage-light:#52b788;--sand:#d4a373;--cream:#fefae0;--bg:#faf9f6;--text:#1a1a1a;--text-muted:#6b7280;--border:#e5e7eb;--danger:#c62828;--success:#2d6a4f;--warn:#d97706;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);}
+.header{background:var(--forest);color:#fff;padding:20px 40px;}
+.header-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-logo{width:46px;height:46px;border-radius:10px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.brand-logo svg{width:28px;height:28px;}
+.brand-text h1{font-size:20px;letter-spacing:2px;font-weight:800;}
+.brand-text .tagline{font-size:11px;color:rgba(255,255,255,0.65);letter-spacing:0.5px;margin-top:2px;}
+.header-meta{text-align:right;font-size:12px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:14px;}
+.tabs{display:flex;gap:4px;margin-top:18px;flex-wrap:wrap;}
+.tab{padding:10px 24px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:none;cursor:pointer;border-radius:8px 8px 0 0;font-size:14px;font-weight:500;transition:all 0.15s;}
+.tab:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.tab.active{background:var(--bg);color:var(--forest);font-weight:600;}
+.container{max-width:1600px;margin:0 auto;padding:25px 20px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.hero{background:#fff;border-radius:14px;padding:30px;margin-bottom:25px;box-shadow:0 2px 12px rgba(0,0,0,0.05);border-left:5px solid var(--sage);}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr;}}
+.hero-label{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);margin-bottom:8px;}
+.hero-number{font-size:52px;font-weight:800;color:var(--forest);line-height:1;}
+.hero-unit{font-size:18px;color:var(--text-muted);font-weight:500;margin-left:8px;}
+.hero-sub{font-size:14px;color:var(--text-muted);margin-top:10px;line-height:1.5;}
+.hero-target{background:var(--cream);border-radius:10px;padding:20px;}
+.hero-target label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);display:block;margin-bottom:8px;}
+.hero-target input{font-size:28px;font-weight:700;border:2px solid var(--border);border-radius:8px;padding:8px 14px;width:100%;background:#fff;color:var(--forest);font-family:inherit;}
+.hero-target input:focus{outline:none;border-color:var(--sage);}
+.hero-target .hint{font-size:11px;color:var(--text-muted);margin-top:6px;font-style:italic;}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px;}
+.metric-card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,0.04);border-left:4px solid var(--sage);}
+.metric-card.warn{border-left-color:var(--sand);}
+.metric-card.highlight{background:var(--forest);color:#fff;border-left-color:var(--sand);}
+.metric-card .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;}
+.metric-card.highlight .lbl{color:rgba(255,255,255,0.7);}
+.metric-card .val{font-size:26px;font-weight:700;color:var(--forest);}
+.metric-card.highlight .val{color:#fff;}
+.metric-card .sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+.metric-card.highlight .sub{color:rgba(255,255,255,0.6);}
+.section{background:#fff;border-radius:14px;padding:25px;margin-bottom:25px;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.section h3{font-size:17px;color:var(--forest);margin-bottom:6px;}
+.section .section-sub{font-size:13px;color:var(--text-muted);margin-bottom:12px;}
+.source-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);font-style:italic;margin-bottom:14px;padding:4px 10px;background:#f3f4f6;border-radius:6px;border-left:3px solid var(--text-muted);}
+.source-tag::before{content:"📄";font-style:normal;}
+.source-tag strong{font-weight:600;color:var(--text);font-style:normal;}
+.source-tag.real{background:#ecfdf5;border-left-color:var(--success);}
+.source-tag.real strong{color:var(--success);}
+.chart-wrap{position:relative;}
+.chart-wrap.tall{height:400px;}
+.chart-wrap.medium{height:320px;}
+.controls-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
+.control-group{padding:16px;background:#f8f9fa;border-radius:10px;}
+.control-group h4{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:14px;}
+.slider-row{margin-bottom:14px;}
+.slider-row:last-child{margin-bottom:0;}
+.slider-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+.slider-label .name{color:var(--text);}
+.slider-label .value{font-weight:700;color:var(--forest);font-family:ui-monospace,monospace;}
+input[type="range"]{width:100%;-webkit-appearance:none;height:6px;border-radius:3px;background:#d1d5db;outline:none;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--sage);cursor:pointer;border:3px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.15);}
+.toggle-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.toggle-item:last-child{border-bottom:none;}
+.toggle-item .info{flex:1;}
+.toggle-item .info .name{font-size:13px;color:var(--text);}
+.toggle-item .info .detail{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.toggle-item .amount{font-weight:600;font-family:ui-monospace,monospace;font-size:13px;margin-right:12px;color:var(--forest);}
+.toggle-item.disabled .info .name,.toggle-item.disabled .amount{color:#9ca3af;text-decoration:line-through;}
+.toggle{position:relative;width:42px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#cbd5e1;border-radius:24px;transition:0.2s;}
+.toggle .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.toggle input:checked + .slider{background:var(--sage);}
+.toggle input:checked + .slider:before{transform:translateX(18px);}
+.tier-row{display:grid;grid-template-columns:1fr 90px 80px 60px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.tier-row:last-child{border-bottom:none;}
+.tier-row .name{font-size:13px;}
+.tier-row input{padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:ui-monospace,monospace;width:100%;}
+.tier-row .weight-pct{font-size:13px;font-weight:600;color:var(--sage);text-align:right;}
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+.scenario-card{background:#fff;border-radius:12px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,0.05);border-top:4px solid var(--sage);}
+.scenario-card.best{border-top-color:var(--success);}
+.scenario-card.worst{border-top-color:var(--danger);}
+.scenario-card h4{font-size:15px;margin-bottom:4px;}
+.scenario-card .note{font-size:12px;color:var(--text-muted);margin-bottom:16px;line-height:1.4;}
+.scenario-card .stat-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+.scenario-card .stat-row .lbl{color:var(--text-muted);}
+.scenario-card .stat-row .val{font-weight:700;font-family:ui-monospace,monospace;}
+.scenario-card .stat-row.big{border-top:2px solid var(--border);margin-top:8px;padding-top:12px;font-size:15px;}
+.scenario-card .stat-row.big .val{color:var(--forest);}
+.waterfall-wrap{height:420px;position:relative;}
+.info-banner{background:var(--cream);border-left:4px solid var(--sand);padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.5;color:var(--text);margin-bottom:20px;}
+.info-banner strong{color:var(--forest);}
+.warn-banner{background:#fef3c7;border-left:4px solid var(--warn);padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.5;color:var(--text);margin-bottom:20px;}
+.warn-banner strong{color:#92400e;}
+.success-banner{background:#ecfdf5;border-left:4px solid var(--success);padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.5;color:var(--text);margin-bottom:20px;}
+.success-banner strong{color:var(--success);}
+.footer{text-align:center;color:var(--text-muted);font-size:12px;padding:30px;}
+.loading{text-align:center;padding:60px;color:var(--text-muted);}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--sage);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.provenance{background:#f0fdf4;border-left:4px solid var(--success);padding:12px 18px;border-radius:8px;font-size:12px;color:var(--text);margin-bottom:20px;display:none;}
+.provenance.show{display:block;}
+.provenance strong{color:var(--success);}
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;padding:20px;}
+.modal-backdrop.show{display:flex;}
+.modal{background:#fff;border-radius:16px;max-width:820px;width:100%;max-height:90vh;overflow-y:auto;padding:30px;}
+.pl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.pl-card{padding:16px;border-radius:10px;border-left:4px solid var(--sage);background:#f9fafb;}
+.pl-card.income{border-left-color:var(--success);background:#ecfdf5;}
+.pl-card.costs{border-left-color:var(--danger);background:#fef2f2;}
+.pl-card.profit{border-left-color:var(--sand);background:var(--cream);}
+.pl-card.gap{border-left-color:var(--warn);background:#fef3c7;}
+.pl-card .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:6px;}
+.pl-card .val{font-size:24px;font-weight:700;color:var(--forest);}
+.pl-card .sub{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.pl-card.costs .val{color:var(--danger);}
+.pl-card.gap .val{color:#92400e;}
+.pl-bar{display:flex;height:34px;border-radius:6px;overflow:hidden;margin:10px 0 6px;font-size:11px;font-weight:600;color:#fff;}
+.pl-bar > div{display:flex;align-items:center;justify-content:center;padding:0 10px;white-space:nowrap;}
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:16px;}
+.prog-card{border:1px solid var(--border);border-radius:10px;padding:16px;}
+.prog-card h5{font-size:13px;color:var(--forest);font-weight:700;margin-bottom:10px;}
+.prog-card .row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;}
+.prog-card .row .lbl{color:var(--text-muted);}
+.prog-card .row .val{font-weight:600;}
+.prog-card .row.total{border-top:1px solid var(--border);margin-top:6px;padding-top:8px;font-size:13px;}
+.prog-card .row.total .val{font-weight:700;}
+.prog-card .file-note{font-size:10px;color:var(--text-muted);margin-top:8px;font-style:italic;}
+.badge{display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:600;vertical-align:middle;}
+.badge-pl{background:#ecfdf5;color:var(--success);}
+.badge-placeholder{background:#f3f4f6;color:var(--text-muted);}
+.badge-programme{background:#eff6ff;color:#1e40af;}
 </style>
 </head>
 <body>
@@ -177,7 +177,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
   <div id="loadingScreen" class="loading"><div class="spinner"></div><div>Loading model…</div></div>
   <div id="provenanceBanner" class="provenance"></div>
 
-  <!-- TAB 1: TARGET VOLUME -->
+  <!-- TAB 1 -->
   <div class="tab-panel active" id="tab-target" style="display:none;">
     <div class="hero">
       <div class="hero-grid">
@@ -202,11 +202,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
       <div class="metric-card highlight"><div class="lbl">Units to collect / month</div><div class="val" id="mCollect">—</div><div class="sub" id="mCollectSub">At 45% sell-through</div></div>
     </div>
 
-    <!-- NEW: Programme economics (P&L) -->
+    <!-- Programme economics -->
     <div class="section" id="plSection">
       <h3>Programme economics — the real P&amp;L story</h3>
-      <div class="section-sub">This is the picture that matters to the board: what the programme actually earns, what it actually costs, and how much of the surplus depends on grant funding.</div>
-      <div class="source-tag" id="plSource">Source: <strong>placeholder</strong> — upload the P&amp;L file to populate</div>
+      <div class="section-sub">Consolidated view across all uploaded programmes. What the shop and takeback actually earn, cost, and contribute to the surplus.</div>
+      <div class="source-tag" id="plSource">Source: <strong>placeholder</strong> — upload P&amp;L files to populate</div>
       <div id="plContent"></div>
     </div>
 
@@ -232,7 +232,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
     </div>
   </div>
 
-  <!-- TAB 2: UNIT ECONOMICS -->
+  <!-- TAB 2 -->
   <div class="tab-panel" id="tab-unit" style="display:none;">
     <div class="info-banner"><strong>How to read this:</strong> Each unit generates revenue, which pays variable costs first. What's left is the <em>contribution</em>, which pays fixed costs. Whatever remains is your surplus toward the target.</div>
 
@@ -248,16 +248,16 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
       <div class="section-sub">Edit prices and weights. Weighted average price drives the model.</div>
       <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder pricing tiers)</div>
       <div id="tierEditor"></div>
-      <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">Weighted average: <strong id="weightedAvg">—</strong> · Weights sum: <strong id="weightSum">—</strong></div>
-      <div style="margin-top:12px;"><button class="tab" style="background:var(--sage); color:#fff; padding:8px 18px; border-radius:6px; font-size:12px; cursor:pointer; border:none;" onclick="applyNormalDistribution()">↻ Apply Normal Distribution</button></div>
+      <div style="margin-top:14px;padding:12px 16px;background:var(--cream);border-radius:8px;font-size:13px;">Weighted average: <strong id="weightedAvg">—</strong> · Weights sum: <strong id="weightSum">—</strong></div>
+      <div style="margin-top:12px;"><button class="tab" style="background:var(--sage);color:#fff;padding:8px 18px;border-radius:6px;font-size:12px;cursor:pointer;border:none;" onclick="applyNormalDistribution()">↻ Apply Normal Distribution</button></div>
     </div>
 
     <div class="section">
       <h3>Fixed costs (monthly)</h3>
-      <div class="section-sub">Toggle each line on or off to model different scenarios.</div>
+      <div class="section-sub">Toggle each line on or off. Programme badges show which P&amp;L each line came from.</div>
       <div class="source-tag" id="fixedCostsSource" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder fixed costs — no P&amp;L uploaded yet)</div>
       <div id="fixedCostsEditor"></div>
-      <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">Total monthly fixed: <strong id="fixedTotal">—</strong> · Annual: <strong id="fixedAnnual">—</strong></div>
+      <div style="margin-top:14px;padding:12px 16px;background:var(--cream);border-radius:8px;font-size:13px;">Total monthly fixed: <strong id="fixedTotal">—</strong> · Annual: <strong id="fixedAnnual">—</strong></div>
     </div>
 
     <div class="section">
@@ -265,11 +265,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
       <div class="section-sub">Toggle each line on or off. Percentage-based costs scale with price.</div>
       <div class="source-tag" data-src="model">Source: <strong>revenue_model.json</strong> (placeholder variable costs)</div>
       <div id="variableCostsEditor"></div>
-      <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">Total variable per unit: <strong id="variableTotal">—</strong> · Contribution per unit: <strong id="contributionTotal">—</strong></div>
+      <div style="margin-top:14px;padding:12px 16px;background:var(--cream);border-radius:8px;font-size:13px;">Total variable per unit: <strong id="variableTotal">—</strong> · Contribution per unit: <strong id="contributionTotal">—</strong></div>
     </div>
   </div>
 
-  <!-- TAB 3: SCENARIOS -->
+  <!-- TAB 3 -->
   <div class="tab-panel" id="tab-scenarios" style="display:none;">
     <div class="section">
       <h3>Scenario comparison</h3>
@@ -294,9 +294,9 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
 
     <div class="section">
       <h3>Seasonality profile</h3>
-      <div class="section-sub">Monthly volume weights across the year. Toggle seasonality on/off to see the difference.</div>
+      <div class="section-sub">Monthly volume weights across the year.</div>
       <div class="source-tag" data-src="model+excel">Source: <strong>revenue_model.json</strong> (placeholder seasonality)</div>
-      <div class="controls-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="controls-grid" style="grid-template-columns:1fr 1fr;">
         <div class="control-group">
           <h4>Seasonality</h4>
           <div class="toggle-item">
@@ -323,13 +323,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
       <h2 style="color:var(--forest);font-size:20px;">Upload a data file</h2>
       <button onclick="closeUploader()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--text-muted);">×</button>
     </div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
-      Drop either the <strong>Warehouse Inventory</strong> file or the <strong>P&amp;L</strong> file. The dashboard auto-detects which is which. Everything is parsed locally in your browser.
-    </p>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Drop any of these: <strong>Warehouse Inventory</strong>, <strong>Takeback Programme P&amp;L</strong>, or <strong>SSP Shop P&amp;L</strong>. Auto-detected in the browser.</p>
     <div id="dropzone" style="border:2px dashed var(--border);border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fafbfc;" onclick="document.getElementById('fileInput').click()">
       <div style="font-size:40px;margin-bottom:10px;">📊</div>
       <div style="font-weight:600;color:var(--forest);margin-bottom:4px;">Click to select or drag the file</div>
-      <div style="font-size:12px;color:var(--text-muted);">Accepts .xlsx, .xls — warehouse or P&amp;L</div>
+      <div style="font-size:12px;color:var(--text-muted);">Accepts .xlsx, .xls</div>
       <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
     </div>
     <div id="uploadProgress" style="display:none;margin-top:20px;">
@@ -352,758 +350,778 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
 // ============================================================
 // SAFE DOM HELPERS
 // ============================================================
-function $el(id) { return document.getElementById(id); }
-function setText(id, txt) { const el = $el(id); if (!el) { console.warn('Missing #' + id); return; } el.textContent = txt; }
-function setHTML(id, html) { const el = $el(id); if (!el) { console.warn('Missing #' + id); return; } el.innerHTML = html; }
-function hide(id) { const el = $el(id); if (el) el.style.display = 'none'; }
-function show(id) { const el = $el(id); if (el) el.style.display = 'block'; }
+function $el(id){return document.getElementById(id);}
+function setText(id,txt){const el=$el(id);if(!el){console.warn('Missing #'+id);return;}el.textContent=txt;}
+function hide(id){const el=$el(id);if(el)el.style.display='none';}
+function show(id){const el=$el(id);if(el)el.style.display='block';}
 
 // ============================================================
 // GLOBAL STATE
 // ============================================================
-let MODEL = null;
-let originalModel = null;
-let monthlyChart = null, cumulativeChart = null;
-let EXCEL_UPLOADED = false, EXCEL_FILENAME = '';
-let PL_UPLOADED = false, PL_FILENAME = '';
-let PENDING_UPDATE = null;
-const KG_PER_UNIT = 0.25;
-
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const fmtHKD = n => 'HK$' + Math.round(n).toLocaleString();
-const fmtHKDcompact = n => {
-  const abs = Math.abs(n);
-  if (abs >= 1e6) return 'HK$' + (n/1e6).toFixed(2) + 'M';
-  if (abs >= 1e3) return 'HK$' + (n/1e3).toFixed(0) + 'k';
-  return 'HK$' + Math.round(n);
-};
+let MODEL=null;
+let originalModel=null;
+let monthlyChart=null,cumulativeChart=null;
+let EXCEL_UPLOADED=false,EXCEL_FILENAME='';
+let PL_UPLOADED=false;
+let PENDING_UPDATE=null;
+const KG_PER_UNIT=0.25;
+const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtHKD=n=>'HK$'+Math.round(n).toLocaleString();
+const fmtHKDcompact=n=>{const abs=Math.abs(n);if(abs>=1e6)return 'HK$'+(n/1e6).toFixed(2)+'M';if(abs>=1e3)return 'HK$'+(n/1e3).toFixed(0)+'k';return 'HK$'+Math.round(n);};
 
 // ============================================================
 // SOURCE ATTRIBUTION
 // ============================================================
-function updateAllSources() {
-  document.querySelectorAll('.source-tag').forEach(el => {
-    const key = el.getAttribute('data-src');
-    const id = el.id;
-    // Skip PL-specific and fixedCosts-specific (handled below)
-    if (id === 'plSource' || id === 'fixedCostsSource') return;
-
-    const usesExcel = key && key.includes('excel');
-    const usesModel = key && key.includes('model');
-
-    if (EXCEL_UPLOADED && usesExcel) {
-      let txt = 'Source: <strong>' + EXCEL_FILENAME + '</strong>';
-      if (usesModel) txt += ' + <strong>revenue_model.json</strong>';
-      el.innerHTML = txt;
-      el.classList.add('real');
-    } else {
-      el.classList.remove('real');
-    }
+function updateAllSources(){
+  document.querySelectorAll('.source-tag').forEach(el=>{
+    const key=el.getAttribute('data-src');
+    const id=el.id;
+    if(id==='plSource'||id==='fixedCostsSource')return;
+    const usesExcel=key&&key.includes('excel');
+    const usesModel=key&&key.includes('model');
+    if(EXCEL_UPLOADED&&usesExcel){
+      let txt='Source: <strong>'+EXCEL_FILENAME+'</strong>';
+      if(usesModel)txt+=' + <strong>revenue_model.json</strong>';
+      el.innerHTML=txt;el.classList.add('real');
+    }else{el.classList.remove('real');}
   });
 
-  // Fixed costs source
-  const fc = $el('fixedCostsSource');
-  if (fc && PL_UPLOADED && MODEL.pl_actuals) {
-    fc.innerHTML = 'Source: <strong>' + PL_FILENAME + '</strong> (' + MODEL.pl_actuals.year + ' operating expenses)';
-    fc.classList.add('real');
+  const fc=$el('fixedCostsSource');
+  if(fc){
+    const progs=MODEL&&MODEL.pl_actuals&&MODEL.pl_actuals.programmes?MODEL.pl_actuals.programmes:{};
+    const names=Object.keys(progs);
+    if(names.length){
+      const files=[...new Set(names.map(n=>progs[n].filename))];
+      fc.innerHTML='Source: <strong>'+files.join(' + ')+'</strong> ('+names.join(' + ')+')';
+      fc.classList.add('real');
+    }
   }
 
-  // Provenance banner
-  const banner = $el('provenanceBanner');
-  if (!banner) return;
-  const parts = [];
-  if (EXCEL_UPLOADED && MODEL.derived_from_excel) {
-    parts.push('Seasonality, sell-through, and channel mix from <strong>' + EXCEL_FILENAME + '</strong> (' +
-      Math.round(MODEL.derived_from_excel.total_kg).toLocaleString() + ' kg collected, ' + MODEL.derived_from_excel.last_upload + ')');
+  const banner=$el('provenanceBanner');if(!banner)return;
+  const parts=[];
+  if(EXCEL_UPLOADED&&MODEL.derived_from_excel){
+    parts.push('Seasonality, sell-through, and channel mix from <strong>'+EXCEL_FILENAME+'</strong>');
   }
-  if (PL_UPLOADED && MODEL.pl_actuals) {
-    parts.push('Fixed costs and income from <strong>' + PL_FILENAME + '</strong> (' + MODEL.pl_actuals.year + ')');
+  if(PL_UPLOADED&&MODEL.pl_actuals&&MODEL.pl_actuals.programmes){
+    const progs=MODEL.pl_actuals.programmes;
+    const names=Object.keys(progs);
+    if(names.length){
+      const files=[...new Set(names.map(n=>progs[n].filename))];
+      parts.push('Programme economics from <strong>'+files.join(' + ')+'</strong> ('+names.join(' + ')+')');
+    }
   }
-  if (parts.length) {
-    banner.innerHTML = '<strong>Data provenance:</strong> ' + parts.join(' · ') + '. All remaining pricing and target assumptions are placeholders from <strong>revenue_model.json</strong>.';
+  if(parts.length){
+    banner.innerHTML='<strong>Data provenance:</strong> '+parts.join(' · ')+'. Remaining pricing and target assumptions are placeholders from <strong>revenue_model.json</strong>.';
     banner.classList.add('show');
-  } else {
-    banner.classList.remove('show');
-  }
+  }else{banner.classList.remove('show');}
 }
 
 // ============================================================
 // LOAD MODEL
 // ============================================================
-async function loadModel() {
-  try {
-    const r = await fetch('revenue_model.json');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    MODEL = await r.json();
-    originalModel = JSON.parse(JSON.stringify(MODEL));
-
-    setText('metaDate', 'Model v' + MODEL.version + ' · ' + MODEL.last_updated);
-    const tgtInput = $el('targetInput');
-    if (tgtInput) tgtInput.value = MODEL.target.surplus_hkd;
-
-    if (MODEL.derived_from_excel) { EXCEL_UPLOADED = true; EXCEL_FILENAME = 'revenue_model.json (pre-baked)'; }
-    if (MODEL.pl_actuals) { PL_UPLOADED = true; PL_FILENAME = MODEL.pl_actuals.filename || 'revenue_model.json (pre-baked)'; }
-
+async function loadModel(){
+  try{
+    const r=await fetch('revenue_model.json');
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    MODEL=await r.json();
+    originalModel=JSON.parse(JSON.stringify(MODEL));
+    setText('metaDate','Model v'+MODEL.version+' · '+MODEL.last_updated);
+    const tgtInput=$el('targetInput');if(tgtInput)tgtInput.value=MODEL.target.surplus_hkd;
+    if(MODEL.derived_from_excel){EXCEL_UPLOADED=true;EXCEL_FILENAME='revenue_model.json (pre-baked)';}
+    if(MODEL.pl_actuals&&MODEL.pl_actuals.programmes&&Object.keys(MODEL.pl_actuals.programmes).length){PL_UPLOADED=true;}
     renderAll();
-  } catch (err) {
-    console.error('loadModel failed:', err);
-    const ls = $el('loadingScreen');
-    if (ls) ls.innerHTML = '<div style="color:#c62828;max-width:600px;margin:0 auto;text-align:left;padding:20px;background:#fff;border-radius:12px;">' +
-      '<div style="font-weight:700;margin-bottom:8px;">Failed to load revenue_model.json</div>' +
-      '<div style="font-size:13px;color:#666;line-height:1.5;">' + err.message + '</div>' +
-      '<div style="font-size:12px;color:#888;margin-top:14px;">Try a hard refresh (Ctrl+Shift+R / Cmd+Shift+R).</div></div>';
+  }catch(err){
+    console.error('loadModel failed:',err);
+    const ls=$el('loadingScreen');
+    if(ls)ls.innerHTML='<div style="color:#c62828;max-width:600px;margin:0 auto;text-align:left;padding:20px;background:#fff;border-radius:12px;"><div style="font-weight:700;margin-bottom:8px;">Failed to load revenue_model.json</div><div style="font-size:13px;color:#666;line-height:1.5;">'+err.message+'</div><div style="font-size:12px;color:#888;margin-top:14px;">Try a hard refresh (Ctrl+Shift+R / Cmd+Shift+R).</div></div>';
   }
 }
 
 // ============================================================
 // CALCULATIONS
 // ============================================================
-function getWeightedAvgPrice() {
-  const tiers = MODEL.pricing.tiers.filter(t => t.enabled);
-  if (!tiers.length) return 0;
-  const totalWeight = tiers.reduce((s, t) => s + t.weight, 0);
-  if (!totalWeight) return 0;
-  return tiers.reduce((s, t) => s + t.price * t.weight, 0) / totalWeight;
+function getWeightedAvgPrice(){
+  const tiers=MODEL.pricing.tiers.filter(t=>t.enabled);
+  if(!tiers.length)return 0;
+  const tw=tiers.reduce((s,t)=>s+t.weight,0);
+  if(!tw)return 0;
+  return tiers.reduce((s,t)=>s+t.price*t.weight,0)/tw;
 }
-function getMonthlyFixed() {
-  if (!MODEL.fixed_costs.enabled) return 0;
-  return MODEL.fixed_costs.items.filter(i => i.enabled).reduce((s, i) => s + i.monthly_hkd, 0);
+function getMonthlyFixed(){
+  if(!MODEL.fixed_costs.enabled)return 0;
+  return MODEL.fixed_costs.items.filter(i=>i.enabled).reduce((s,i)=>s+i.monthly_hkd,0);
 }
-function getVariableCostPerUnit(avgPrice) {
-  if (!MODEL.variable_costs.enabled) return 0;
-  let total = 0;
-  MODEL.variable_costs.items.filter(i => i.enabled).forEach(i => {
-    if (i.per_unit_hkd) total += i.per_unit_hkd;
-    if (i.per_unit_pct) total += avgPrice * (i.per_unit_pct / 100);
+function getVariableCostPerUnit(avgPrice){
+  if(!MODEL.variable_costs.enabled)return 0;
+  let total=0;
+  MODEL.variable_costs.items.filter(i=>i.enabled).forEach(i=>{
+    if(i.per_unit_hkd)total+=i.per_unit_hkd;
+    if(i.per_unit_pct)total+=avgPrice*(i.per_unit_pct/100);
   });
   return total;
 }
-function calculate() {
-  const avgPrice = getWeightedAvgPrice();
-  const variableCost = getVariableCostPerUnit(avgPrice);
-  const contribution = avgPrice - variableCost;
-  const monthlyFixed = getMonthlyFixed();
-  const target = MODEL.target.surplus_hkd;
-  const periodMonths = MODEL.target.period_months || 12;
-
-  const annualContributionRequired = monthlyFixed * periodMonths + target;
-  const annualUnits = contribution > 0 ? annualContributionRequired / contribution : 0;
-  const monthlyUnitsAvg = annualUnits / periodMonths;
-
-  const breakEvenAnnual = contribution > 0 ? (monthlyFixed * periodMonths) / contribution : 0;
-  const breakEvenMonthly = breakEvenAnnual / periodMonths;
-
-  let monthlyVolumes = [];
-  if (MODEL.seasonality.enabled) {
-    const weights = MODEL.seasonality.monthly_weights;
-    const totalWeight = weights.reduce((s, w) => s + w, 0);
-    monthlyVolumes = weights.map(w => (annualUnits * w) / totalWeight);
-  } else {
-    monthlyVolumes = Array(12).fill(monthlyUnitsAvg);
-  }
-
-  const sellThrough = MODEL.yield.sell_through_pct / 100;
-  const monthlyCollectAvg = sellThrough > 0 ? monthlyUnitsAvg / sellThrough : 0;
-
-  return { avgPrice, variableCost, contribution, monthlyFixed, annualUnits, monthlyUnitsAvg, monthlyVolumes, breakEvenAnnual, breakEvenMonthly, monthlyCollectAvg, sellThrough, target, periodMonths, annualContributionRequired };
+function calculate(){
+  const avgPrice=getWeightedAvgPrice();
+  const variableCost=getVariableCostPerUnit(avgPrice);
+  const contribution=avgPrice-variableCost;
+  const monthlyFixed=getMonthlyFixed();
+  const target=MODEL.target.surplus_hkd;
+  const periodMonths=MODEL.target.period_months||12;
+  const annualContributionRequired=monthlyFixed*periodMonths+target;
+  const annualUnits=contribution>0?annualContributionRequired/contribution:0;
+  const monthlyUnitsAvg=annualUnits/periodMonths;
+  const breakEvenAnnual=contribution>0?(monthlyFixed*periodMonths)/contribution:0;
+  const breakEvenMonthly=breakEvenAnnual/periodMonths;
+  let monthlyVolumes=[];
+  if(MODEL.seasonality.enabled){
+    const weights=MODEL.seasonality.monthly_weights;
+    const tw=weights.reduce((s,w)=>s+w,0);
+    monthlyVolumes=weights.map(w=>(annualUnits*w)/tw);
+  }else{monthlyVolumes=Array(12).fill(monthlyUnitsAvg);}
+  const sellThrough=MODEL.yield.sell_through_pct/100;
+  const monthlyCollectAvg=sellThrough>0?monthlyUnitsAvg/sellThrough:0;
+  return{avgPrice,variableCost,contribution,monthlyFixed,annualUnits,monthlyUnitsAvg,monthlyVolumes,breakEvenAnnual,breakEvenMonthly,monthlyCollectAvg,sellThrough,target,periodMonths,annualContributionRequired};
 }
 
 // ============================================================
 // RENDER
 // ============================================================
-function safeCall(name, fn) { try { fn(); } catch (e) { console.error('Render step "' + name + '" failed:', e); } }
-function renderAll() {
-  const c = calculate();
-  safeCall('hero', () => renderHero(c));
-  safeCall('metrics', () => renderMetrics(c));
-  safeCall('plSection', () => renderPLSection());
-  safeCall('controls', () => renderControls());
-  safeCall('monthlyChart', () => renderMonthlyChart(c));
-  safeCall('cumulativeChart', () => renderCumulativeChart(c));
-  safeCall('tierEditor', () => renderTierEditor());
-  safeCall('fixedCosts', () => renderFixedCostsEditor());
-  safeCall('variableCosts', () => renderVariableCostsEditor());
-  safeCall('waterfall', () => renderWaterfall(c));
-  safeCall('scenarios', () => renderScenarios());
-  safeCall('heatmaps', () => renderHeatmaps());
-  safeCall('channelMix', () => renderChannelMix());
-  safeCall('sources', () => updateAllSources());
+function safeCall(name,fn){try{fn();}catch(e){console.error('Render "'+name+'" failed:',e);}}
+function renderAll(){
+  const c=calculate();
+  safeCall('hero',()=>renderHero(c));
+  safeCall('metrics',()=>renderMetrics(c));
+  safeCall('plSection',()=>renderPLSection());
+  safeCall('controls',()=>renderControls());
+  safeCall('monthlyChart',()=>renderMonthlyChart(c));
+  safeCall('cumulativeChart',()=>renderCumulativeChart(c));
+  safeCall('tierEditor',()=>renderTierEditor());
+  safeCall('fixedCosts',()=>renderFixedCostsEditor());
+  safeCall('variableCosts',()=>renderVariableCostsEditor());
+  safeCall('waterfall',()=>renderWaterfall(c));
+  safeCall('scenarios',()=>renderScenarios());
+  safeCall('heatmaps',()=>renderHeatmaps());
+  safeCall('channelMix',()=>renderChannelMix());
+  safeCall('sources',()=>updateAllSources());
   hide('loadingScreen');
-  const tt = $el('tab-target'); if (tt) tt.style.display = 'block';
+  const tt=$el('tab-target');if(tt)tt.style.display='block';
+}
+function renderHero(c){
+  setText('heroUnits',Math.ceil(c.monthlyUnitsAvg).toLocaleString());
+  const el=$el('heroSub');
+  if(el)el.innerHTML=`That's <strong>${Math.ceil(c.annualUnits).toLocaleString()} units per year</strong>, or about <strong>${Math.ceil(c.monthlyUnitsAvg/30)} units per day</strong> across pop-up and online. You'll need to collect roughly <strong>${Math.ceil(c.monthlyCollectAvg).toLocaleString()} items per month</strong> at ${MODEL.yield.sell_through_pct}% sell-through.`;
+}
+function renderMetrics(c){
+  setText('mAvgPrice',fmtHKD(c.avgPrice));
+  setText('mAvgPriceSub','Weighted across '+MODEL.pricing.tiers.filter(t=>t.enabled).length+' tiers');
+  setText('mContribution',fmtHKD(c.contribution));
+  setText('mBreakEven',Math.ceil(c.breakEvenMonthly).toLocaleString());
+  setText('mCollect',Math.ceil(c.monthlyCollectAvg).toLocaleString());
+  setText('mCollectSub','At '+MODEL.yield.sell_through_pct+'% sell-through');
 }
 
-function renderHero(c) {
-  setText('heroUnits', Math.ceil(c.monthlyUnitsAvg).toLocaleString());
-  const el = $el('heroSub');
-  if (el) el.innerHTML =
-    `That's <strong>${Math.ceil(c.annualUnits).toLocaleString()} units per year</strong>, ` +
-    `or about <strong>${Math.ceil(c.monthlyUnitsAvg/30)} units per day</strong> across pop-up and online. ` +
-    `You'll need to collect roughly <strong>${Math.ceil(c.monthlyCollectAvg).toLocaleString()} items per month</strong> ` +
-    `at ${MODEL.yield.sell_through_pct}% sell-through.`;
-}
-function renderMetrics(c) {
-  setText('mAvgPrice', fmtHKD(c.avgPrice));
-  setText('mAvgPriceSub', 'Weighted across ' + MODEL.pricing.tiers.filter(t=>t.enabled).length + ' tiers');
-  setText('mContribution', fmtHKD(c.contribution));
-  setText('mBreakEven', Math.ceil(c.breakEvenMonthly).toLocaleString());
-  setText('mCollect', Math.ceil(c.monthlyCollectAvg).toLocaleString());
-  setText('mCollectSub', 'At ' + MODEL.yield.sell_through_pct + '% sell-through');
-}
+// ---------- PROGRAMME ECONOMICS ----------
+function renderPLSection(){
+  const el=$el('plContent');if(!el)return;
+  const src=$el('plSource');
+  const progs=(MODEL.pl_actuals&&MODEL.pl_actuals.programmes)?MODEL.pl_actuals.programmes:{};
+  const names=Object.keys(progs);
 
-// ---------- NEW: P&L SECTION ----------
-function renderPLSection() {
-  const el = $el('plContent'); if (!el) return;
-  const src = $el('plSource');
-
-  if (!PL_UPLOADED || !MODEL.pl_actuals) {
-    if (src) {
-      src.innerHTML = 'Source: <strong>placeholder</strong> — upload the P&L file to populate';
-      src.classList.remove('real');
-    }
-    el.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:14px;background:#f9fafb;border-radius:8px;">No P&L uploaded yet. Click <strong>📂 Upload Excel</strong> and drop the Redress P&L file to see income, costs, grant dependency, and operating profit here.</div>';
+  if(!names.length){
+    if(src){src.innerHTML='Source: <strong>placeholder</strong> — upload the P&L file(s) to populate';src.classList.remove('real');}
+    el.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:14px;background:#f9fafb;border-radius:8px;">No P&L uploaded yet. Click <strong>📂 Upload Excel</strong> and drop the Redress P&L file(s) — <em>Takeback Programme</em> and/or <em>SSP Shop</em> — to see the consolidated picture.</div>';
     return;
   }
 
-  const p = MODEL.pl_actuals;
-  const resale = (p.income['Income (System)'] || 0);
-  const grants = (p.income['Grants'] || 0);
-  const totalIncome = p.total_income;
-  const totalExpenses = p.total_expenses;
-  const operatingProfit = p.operating_profit;
-  const gapWithoutGrants = resale - totalExpenses;
+  // Consolidated
+  let totIncome=0,totCosts=0,totProfit=0;
+  names.forEach(n=>{const p=progs[n];totIncome+=p.total_income;totCosts+=(p.total_expenses+(p.total_cost_of_sales||0));totProfit+=p.operating_profit;});
+  const target=MODEL.target.surplus_hkd;
+  const aboveTarget=totProfit>=target;
 
-  if (src) {
-    src.innerHTML = 'Source: <strong>' + PL_FILENAME + '</strong> · ' + p.year + ' P&amp;L';
+  if(src){
+    const files=[...new Set(names.map(n=>progs[n].filename))];
+    src.innerHTML='Source: <strong>'+files.join(' + ')+'</strong> ('+names.join(' + ')+')';
     src.classList.add('real');
   }
 
-  // Stacked bar showing the two income streams
-  const totalBar = totalIncome + Math.max(0, 0);
-  const pctResale = totalIncome > 0 ? (resale / totalIncome) * 100 : 0;
-  const pctGrants = totalIncome > 0 ? (grants / totalIncome) * 100 : 0;
+  let html='<div class="pl-grid">'+
+    '<div class="pl-card income"><div class="lbl">Total income</div><div class="val">'+fmtHKD(totIncome)+'</div><div class="sub">All programmes</div></div>'+
+    '<div class="pl-card costs"><div class="lbl">Total costs</div><div class="val">'+fmtHKD(totCosts)+'</div><div class="sub">Cost of sales + opex</div></div>'+
+    '<div class="pl-card profit"><div class="lbl">Operating profit</div><div class="val">'+fmtHKD(totProfit)+'</div><div class="sub">Across all programmes</div></div>'+
+    '<div class="pl-card '+(aboveTarget?'income':'gap')+'"><div class="lbl">vs Target ('+fmtHKD(target)+')</div><div class="val">'+(aboveTarget?'✓ Above':'⚠ Below')+'</div><div class="sub">'+(aboveTarget?'By '+fmtHKD(totProfit-target):'Gap: '+fmtHKD(target-totProfit))+'</div></div>'+
+  '</div>';
 
-  el.innerHTML =
-    '<div class="pl-grid">' +
-      '<div class="pl-card income"><div class="lbl">Resale income</div><div class="val">' + fmtHKD(resale) + '</div><div class="sub">From selling clothes</div></div>' +
-      '<div class="pl-card income"><div class="lbl">Grants</div><div class="val">' + fmtHKD(grants) + '</div><div class="sub">' + (totalIncome > 0 ? ((grants/totalIncome)*100).toFixed(0) + '% of total income' : '') + '</div></div>' +
-      '<div class="pl-card costs"><div class="lbl">Operating expenses</div><div class="val">' + fmtHKD(totalExpenses) + '</div><div class="sub">' + fmtHKD(totalExpenses/12) + ' / month</div></div>' +
-      '<div class="pl-card profit"><div class="lbl">Operating profit</div><div class="val">' + fmtHKD(operatingProfit) + '</div><div class="sub">Target: ' + fmtHKD(MODEL.target.surplus_hkd) + '</div></div>' +
-    '</div>' +
-    '<div style="margin-top:6px;">' +
-      '<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Income mix</div>' +
-      '<div class="pl-bar">' +
-        '<div style="width:' + pctResale + '%;background:var(--sage);">' + pctResale.toFixed(0) + '% resale</div>' +
-        '<div style="width:' + pctGrants + '%;background:var(--sand);">' + pctGrants.toFixed(0) + '% grants</div>' +
-      '</div>' +
-    '</div>' +
-    (gapWithoutGrants < 0 ?
-      '<div class="warn-banner" style="margin-top:16px;">' +
-        '<strong>⚠ Grant dependency:</strong> Resale income (' + fmtHKD(resale) + ') alone does <strong>not</strong> cover operating expenses (' + fmtHKD(totalExpenses) + '). ' +
-        'The programme is short by <strong>' + fmtHKD(Math.abs(gapWithoutGrants)) + '</strong> before grants. ' +
-        'Grants flip the picture to a surplus of ' + fmtHKD(operatingProfit) + '. ' +
-        'This is the number the board should watch — how sensitive is Redress to losing grant funding?' +
-      '</div>' :
-      '<div class="info-banner" style="margin-top:16px;">' +
-        '<strong>✓ Self-funding on resale alone:</strong> Resale income covers operating expenses with ' + fmtHKD(resale - totalExpenses) + ' headroom. Grants augment this rather than fund it.' +
-      '</div>') +
-    (operatingProfit > MODEL.target.surplus_hkd ?
-      '<div class="info-banner" style="margin-top:12px;">' +
-        '<strong>✓ Above target:</strong> Operating profit of ' + fmtHKD(operatingProfit) + ' exceeds the HK$' + MODEL.target.surplus_hkd.toLocaleString() + ' target by ' + fmtHKD(operatingProfit - MODEL.target.surplus_hkd) + '.' +
-      '</div>' : '');
+  // Per-programme
+  html+='<div style="font-size:12px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;">Per-programme breakdown</div>';
+  html+='<div class="prog-grid">';
+  names.forEach(n=>{
+    const p=progs[n];
+    const costs=p.total_expenses+(p.total_cost_of_sales||0);
+    const pos=p.operating_profit>=0;
+    html+='<div class="prog-card">'+
+      '<h5>'+n+'</h5>'+
+      '<div class="row"><span class="lbl">Income</span><span class="val">'+fmtHKD(p.total_income)+'</span></div>'+
+      (p.total_cost_of_sales?'<div class="row"><span class="lbl">Cost of sales</span><span class="val">'+fmtHKD(p.total_cost_of_sales)+'</span></div>':'')+
+      '<div class="row"><span class="lbl">Operating expenses</span><span class="val">'+fmtHKD(p.total_expenses)+'</span></div>'+
+      '<div class="row total"><span class="lbl">Operating profit</span><span class="val" style="color:'+(pos?'var(--success)':'var(--danger)')+';">'+fmtHKD(p.operating_profit)+'</span></div>'+
+      '<div class="file-note">📄 '+p.filename+'</div>'+
+    '</div>';
+  });
+  html+='</div>';
 
-  // Warn if no staff line
-  const hasStaff = MODEL.fixed_costs.items.some(i => /salary|salaries|staff|payroll/i.test(i.name) && i.enabled);
-  if (PL_UPLOADED && !hasStaff) {
-    el.innerHTML += '<div class="warn-banner" style="margin-top:12px;">' +
-      '<strong>⚠ Heads-up on the P&amp;L:</strong> No staff salaries line appears in the uploaded P&amp;L. If staff costs are allocated to another cost centre, this dashboard understates true programme costs. Add a staff line manually on the Unit Economics tab if needed.' +
+  // Income mix bar
+  const resale=names.reduce((s,n)=>s+(progs[n].income['Income (System)']||0),0);
+  const grants=names.reduce((s,n)=>s+(progs[n].income['Grants']||0),0);
+  const donations=names.reduce((s,n)=>s+(progs[n].income['Donation']||0),0);
+  const pctResale=totIncome>0?(resale/totIncome)*100:0;
+  const pctGrants=totIncome>0?(grants/totIncome)*100:0;
+  const pctDonations=totIncome>0?(donations/totIncome)*100:0;
+  html+='<div style="margin-top:18px;"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Consolidated income mix</div>'+
+    '<div class="pl-bar">'+
+      '<div style="width:'+pctResale+'%;background:var(--sage);">'+pctResale.toFixed(0)+'% resale</div>'+
+      (pctGrants>0?'<div style="width:'+pctGrants+'%;background:var(--sand);">'+pctGrants.toFixed(0)+'% grants</div>':'')+
+      (pctDonations>0?'<div style="width:'+pctDonations+'%;background:#94a3b8;">'+pctDonations.toFixed(0)+'% donations</div>':'')+
+    '</div></div>';
+
+  // Insight banners
+  const takebackKey=names.find(n=>/takeback/i.test(n));
+  const shopKey=names.find(n=>/shop/i.test(n));
+
+  if(takebackKey&&shopKey){
+    const tb=progs[takebackKey],sh=progs[shopKey];
+    const tbRevenueNoGrants=(tb.income['Income (System)']||0)+(tb.income['Donation']||0);
+    const tbGap=tbRevenueNoGrants-(tb.total_expenses+(tb.total_cost_of_sales||0));
+    const shopMargin=(sh.operating_profit/sh.total_income)*100;
+    html+='<div class="success-banner" style="margin-top:16px;">'+
+      '<strong>💡 The Shop is the profit engine.</strong> '+shopKey+' generates <strong>'+fmtHKD(sh.operating_profit)+'</strong> operating profit on '+fmtHKD(sh.total_income)+' of revenue ('+shopMargin.toFixed(0)+'% margin), while '+takebackKey+' runs at <strong>'+fmtHKD(tb.operating_profit)+'</strong>. Combined, that is <strong>'+(totProfit/target).toFixed(1)+'× your current target</strong>. The board should ask: how do we grow the Shop, and can we make Takeback self-sustaining?'+
+    '</div>';
+    if(tbGap<0){
+      html+='<div class="warn-banner" style="margin-top:12px;">'+
+        '<strong>⚠ Grant dependency — '+takebackKey+':</strong> Resale + donations ('+fmtHKD(tbRevenueNoGrants)+') fall short of operating costs by <strong>'+fmtHKD(Math.abs(tbGap))+'</strong>. The programme only balances because of '+fmtHKD(tb.income['Grants']||0)+' in grants. Every HK$ of grant lost is a HK$ of operating profit gone.'+
       '</div>';
+    }
+  }else if(takebackKey){
+    const tb=progs[takebackKey];
+    const tbGap=(tb.income['Income (System)']||0)-(tb.total_expenses+(tb.total_cost_of_sales||0));
+    if(tbGap<0){
+      html+='<div class="warn-banner" style="margin-top:12px;"><strong>⚠ Grant dependency:</strong> Takeback Programme resale income alone falls short of operating costs by '+fmtHKD(Math.abs(tbGap))+'. Grants cover the gap.</div>';
+    }
+    html+='<div class="info-banner" style="margin-top:12px;">Upload the <strong>SSP Shop</strong> P&L to see the full consolidated picture. Redress likely has one programme subsidising the other.</div>';
+  }else if(shopKey){
+    html+='<div class="info-banner" style="margin-top:12px;">Upload the <strong>Takeback Programme</strong> P&L to complete the consolidated view.</div>';
   }
+
+  // Staff caveat
+  const hasStaff=MODEL.fixed_costs.items.some(i=>/salary|salaries|staff|payroll/i.test(i.name)&&i.enabled);
+  if(!hasStaff){
+    html+='<div class="warn-banner" style="margin-top:12px;"><strong>⚠ Heads-up:</strong> No staff salaries line appears in any uploaded P&L. If staff costs are allocated elsewhere in Redress Limited, this dashboard <strong>understates</strong> true programme costs.</div>';
+  }
+
+  // Target ambition check
+  if(totProfit>target*2){
+    html+='<div class="info-banner" style="margin-top:12px;"><strong>📈 Target looks unambitious.</strong> Actual operating profit is '+fmtHKD(totProfit)+' — about <strong>'+(totProfit/target).toFixed(1)+'× the current HK$'+target.toLocaleString()+' target</strong>. Consider raising the target or refocusing the board conversation on growth (Shop scaling) and sustainability (Takeback grant independence).</div>';
+  }
+
+  el.innerHTML=html;
 }
 
-function renderControls() {
-  const grid = $el('controlsGrid'); if (!grid) return;
-  grid.innerHTML = '';
-  const c = calculate();
-
-  const g1 = document.createElement('div'); g1.className = 'control-group';
-  g1.innerHTML = '<h4>Sell-through rate</h4><div class="slider-row"><div class="slider-label"><span class="name">% of collected items that are sellable</span><span class="value" id="stValue">' + MODEL.yield.sell_through_pct + '%</span></div><input type="range" min="20" max="80" step="1" value="' + MODEL.yield.sell_through_pct + '" oninput="onSellThroughChange(this.value)"></div>';
+function renderControls(){
+  const grid=$el('controlsGrid');if(!grid)return;
+  grid.innerHTML='';
+  const c=calculate();
+  const g1=document.createElement('div');g1.className='control-group';
+  g1.innerHTML='<h4>Sell-through rate</h4><div class="slider-row"><div class="slider-label"><span class="name">% of collected items that are sellable</span><span class="value" id="stValue">'+MODEL.yield.sell_through_pct+'%</span></div><input type="range" min="20" max="80" step="1" value="'+MODEL.yield.sell_through_pct+'" oninput="onSellThroughChange(this.value)"></div>';
   grid.appendChild(g1);
-
-  const g2 = document.createElement('div'); g2.className = 'control-group';
-  g2.innerHTML = '<h4>Price adjustment</h4><div class="slider-row"><div class="slider-label"><span class="name">Shift all tier prices by</span><span class="value" id="psValue">100%</span></div><input type="range" min="70" max="130" step="5" value="100" oninput="onPriceShiftChange(this.value)"></div>';
+  const g2=document.createElement('div');g2.className='control-group';
+  g2.innerHTML='<h4>Price adjustment</h4><div class="slider-row"><div class="slider-label"><span class="name">Shift all tier prices by</span><span class="value" id="psValue">100%</span></div><input type="range" min="70" max="130" step="5" value="100" oninput="onPriceShiftChange(this.value)"></div>';
   grid.appendChild(g2);
-
-  const g3 = document.createElement('div'); g3.className = 'control-group';
-  g3.innerHTML = '<h4>Fixed costs</h4><div class="toggle-item"><div class="info"><div class="name">Include fixed costs</div><div class="detail">' + fmtHKDcompact(c.monthlyFixed) + ' / month</div></div><label class="toggle"><input type="checkbox" ' + (MODEL.fixed_costs.enabled ? 'checked' : '') + ' onchange="onFixedToggle(this.checked)"><span class="slider"></span></label></div>';
+  const g3=document.createElement('div');g3.className='control-group';
+  g3.innerHTML='<h4>Fixed costs</h4><div class="toggle-item"><div class="info"><div class="name">Include fixed costs</div><div class="detail">'+fmtHKDcompact(c.monthlyFixed)+' / month</div></div><label class="toggle"><input type="checkbox" '+(MODEL.fixed_costs.enabled?'checked':'')+' onchange="onFixedToggle(this.checked)"><span class="slider"></span></label></div>';
   grid.appendChild(g3);
-
-  const g4 = document.createElement('div'); g4.className = 'control-group';
-  g4.innerHTML = '<h4>Variable costs</h4><div class="toggle-item"><div class="info"><div class="name">Include variable costs</div><div class="detail">' + fmtHKD(c.variableCost) + ' / unit</div></div><label class="toggle"><input type="checkbox" ' + (MODEL.variable_costs.enabled ? 'checked' : '') + ' onchange="onVariableToggle(this.checked)"><span class="slider"></span></label></div>';
+  const g4=document.createElement('div');g4.className='control-group';
+  g4.innerHTML='<h4>Variable costs</h4><div class="toggle-item"><div class="info"><div class="name">Include variable costs</div><div class="detail">'+fmtHKD(c.variableCost)+' / unit</div></div><label class="toggle"><input type="checkbox" '+(MODEL.variable_costs.enabled?'checked':'')+' onchange="onVariableToggle(this.checked)"><span class="slider"></span></label></div>';
   grid.appendChild(g4);
 }
 
-function onSellThroughChange(val) { MODEL.yield.sell_through_pct = parseFloat(val); setText('stValue', val + '%'); renderAll(); }
-function onPriceShiftChange(val) {
-  const m = parseFloat(val) / 100;
-  MODEL.pricing.tiers.forEach((t, i) => { t.price = Math.round(originalModel.pricing.tiers[i].price * m); });
-  setText('psValue', val + '%');
-  renderAll();
-}
-function onFixedToggle(val) { MODEL.fixed_costs.enabled = val; renderAll(); }
-function onVariableToggle(val) { MODEL.variable_costs.enabled = val; renderAll(); }
-function onTargetChange() { MODEL.target.surplus_hkd = parseFloat($el('targetInput').value) || 0; renderAll(); }
-function onSeasonalityChange() { const el = $el('seasonalityToggle'); MODEL.seasonality.enabled = el ? el.checked : true; renderAll(); }
+function onSellThroughChange(val){MODEL.yield.sell_through_pct=parseFloat(val);setText('stValue',val+'%');renderAll();}
+function onPriceShiftChange(val){const m=parseFloat(val)/100;MODEL.pricing.tiers.forEach((t,i)=>{t.price=Math.round(originalModel.pricing.tiers[i].price*m);});setText('psValue',val+'%');renderAll();}
+function onFixedToggle(val){MODEL.fixed_costs.enabled=val;renderAll();}
+function onVariableToggle(val){MODEL.variable_costs.enabled=val;renderAll();}
+function onTargetChange(){MODEL.target.surplus_hkd=parseFloat($el('targetInput').value)||0;renderAll();}
+function onSeasonalityChange(){const el=$el('seasonalityToggle');MODEL.seasonality.enabled=el?el.checked:true;renderAll();}
 
-function renderMonthlyChart(c) {
-  const ctx = $el('monthlyChart'); if (!ctx) return;
-  if (monthlyChart) { try { monthlyChart.destroy(); } catch(e){} }
-  monthlyChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: MONTH_NAMES, datasets: [{ label: 'Units required', data: c.monthlyVolumes.map(v => Math.ceil(v)), backgroundColor: c.monthlyVolumes.map((v, i) => MODEL.seasonality.enabled && MODEL.seasonality.peak_months.includes(i+1) ? '#d4a373' : '#40916c'), borderRadius: 6 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: cc => cc.parsed.y.toLocaleString() + ' units' } } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'Units' } } } }
-  });
+function renderMonthlyChart(c){
+  const ctx=$el('monthlyChart');if(!ctx)return;
+  if(monthlyChart){try{monthlyChart.destroy();}catch(e){}}
+  monthlyChart=new Chart(ctx,{type:'bar',data:{labels:MONTH_NAMES,datasets:[{label:'Units required',data:c.monthlyVolumes.map(v=>Math.ceil(v)),backgroundColor:c.monthlyVolumes.map((v,i)=>MODEL.seasonality.enabled&&MODEL.seasonality.peak_months.includes(i+1)?'#d4a373':'#40916c'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:cc=>cc.parsed.y.toLocaleString()+' units'}}},scales:{y:{beginAtZero:true,title:{display:true,text:'Units'}}}}});
 }
-
-function renderCumulativeChart(c) {
-  const ctx = $el('cumulativeChart'); if (!ctx) return;
-  if (cumulativeChart) { try { cumulativeChart.destroy(); } catch(e){} }
-  let cum = 0;
-  const cumulative = c.monthlyVolumes.map(v => { cum += v * c.contribution; return cum; });
-  const costsCum = MODEL.fixed_costs.enabled ? MONTH_NAMES.map((_, i) => c.monthlyFixed * (i + 1)) : MONTH_NAMES.map(() => 0);
-  const targetLine = MONTH_NAMES.map(() => c.target);
-  cumulativeChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels: MONTH_NAMES, datasets: [
-      { label: 'Cumulative contribution', data: cumulative, borderColor: '#40916c', backgroundColor: 'rgba(64,145,108,0.1)', borderWidth: 2.5, tension: 0.3, fill: true, pointRadius: 3 },
-      { label: 'Cumulative fixed costs', data: costsCum, borderColor: '#c62828', borderWidth: 1.5, borderDash: [6,4], tension: 0.3, pointRadius: 0 },
-      { label: 'Target', data: targetLine, borderColor: '#d4a373', borderWidth: 2, borderDash: [4,4], tension: 0, pointRadius: 0 }
-    ]},
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtHKD(ctx.parsed.y) } } }, scales: { y: { beginAtZero: true, ticks: { callback: v => fmtHKDcompact(v) } } } }
-  });
+function renderCumulativeChart(c){
+  const ctx=$el('cumulativeChart');if(!ctx)return;
+  if(cumulativeChart){try{cumulativeChart.destroy();}catch(e){}}
+  let cum=0;
+  const cumulative=c.monthlyVolumes.map(v=>{cum+=v*c.contribution;return cum;});
+  const costsCum=MODEL.fixed_costs.enabled?MONTH_NAMES.map((_,i)=>c.monthlyFixed*(i+1)):MONTH_NAMES.map(()=>0);
+  const targetLine=MONTH_NAMES.map(()=>c.target);
+  cumulativeChart=new Chart(ctx,{type:'line',data:{labels:MONTH_NAMES,datasets:[{label:'Cumulative contribution',data:cumulative,borderColor:'#40916c',backgroundColor:'rgba(64,145,108,0.1)',borderWidth:2.5,tension:0.3,fill:true,pointRadius:3},{label:'Cumulative fixed costs',data:costsCum,borderColor:'#c62828',borderWidth:1.5,borderDash:[6,4],tension:0.3,pointRadius:0},{label:'Target',data:targetLine,borderColor:'#d4a373',borderWidth:2,borderDash:[4,4],tension:0,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtHKD(ctx.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>fmtHKDcompact(v)}}}}});
 }
-
-function renderTierEditor() {
-  const el = $el('tierEditor'); if (!el) return;
-  el.innerHTML = '';
-  const weightSum = MODEL.pricing.tiers.reduce((s,t) => s + (t.enabled ? t.weight : 0), 0);
-  MODEL.pricing.tiers.forEach((t, i) => {
-    const row = document.createElement('div');
-    row.className = 'tier-row'; if (!t.enabled) row.style.opacity = '0.5';
-    row.innerHTML = '<div class="name">' + t.name + '</div><input type="number" value="' + t.price + '" onchange="updateTierPrice(' + i + ', this.value)"><input type="number" value="' + t.weight + '" onchange="updateTierWeight(' + i + ', this.value)"><div class="weight-pct">' + (weightSum > 0 ? ((t.weight / weightSum) * 100).toFixed(0) + '%' : '—') + '</div>';
+function renderTierEditor(){
+  const el=$el('tierEditor');if(!el)return;
+  el.innerHTML='';
+  const weightSum=MODEL.pricing.tiers.reduce((s,t)=>s+(t.enabled?t.weight:0),0);
+  MODEL.pricing.tiers.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.className='tier-row';if(!t.enabled)row.style.opacity='0.5';
+    row.innerHTML='<div class="name">'+t.name+'</div><input type="number" value="'+t.price+'" onchange="updateTierPrice('+i+', this.value)"><input type="number" value="'+t.weight+'" onchange="updateTierWeight('+i+', this.value)"><div class="weight-pct">'+(weightSum>0?((t.weight/weightSum)*100).toFixed(0)+'%':'—')+'</div>';
     el.appendChild(row);
   });
-  setText('weightedAvg', fmtHKD(getWeightedAvgPrice()));
-  setText('weightSum', weightSum);
+  setText('weightedAvg',fmtHKD(getWeightedAvgPrice()));
+  setText('weightSum',weightSum);
 }
-function updateTierPrice(i, val) { MODEL.pricing.tiers[i].price = parseFloat(val) || 0; renderAll(); }
-function updateTierWeight(i, val) { MODEL.pricing.tiers[i].weight = parseFloat(val) || 0; renderAll(); }
-function applyNormalDistribution() {
-  const mean = 250, std = 120;
-  MODEL.pricing.tiers.forEach(t => { t.weight = Math.round(Math.exp(-Math.pow(t.price - mean, 2) / (2 * std * std)) * 100); });
-  renderAll();
-}
+function updateTierPrice(i,val){MODEL.pricing.tiers[i].price=parseFloat(val)||0;renderAll();}
+function updateTierWeight(i,val){MODEL.pricing.tiers[i].weight=parseFloat(val)||0;renderAll();}
+function applyNormalDistribution(){const mean=250,std=120;MODEL.pricing.tiers.forEach(t=>{t.weight=Math.round(Math.exp(-Math.pow(t.price-mean,2)/(2*std*std))*100);});renderAll();}
 
-function renderFixedCostsEditor() {
-  const el = $el('fixedCostsEditor'); if (!el) return;
-  el.innerHTML = '';
-  MODEL.fixed_costs.items.forEach((item, i) => {
-    const row = document.createElement('div');
-    row.className = 'toggle-item' + (item.enabled ? '' : ' disabled');
-    const srcBadge = item.source === 'P&L' ? ' <span style="background:#ecfdf5;color:var(--success);font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:600;">P&L</span>' : ' <span style="background:#f3f4f6;color:var(--text-muted);font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px;font-weight:600;">PLACEHOLDER</span>';
-    row.innerHTML = '<div class="info"><div class="name">' + item.name + srcBadge + '</div><div class="detail">' + item.category + '</div></div><div class="amount">' + fmtHKD(item.monthly_hkd) + '</div><label class="toggle"><input type="checkbox" ' + (item.enabled ? 'checked' : '') + ' onchange="toggleFixedCost(' + i + ', this.checked)"><span class="slider"></span></label>';
+function renderFixedCostsEditor(){
+  const el=$el('fixedCostsEditor');if(!el)return;
+  el.innerHTML='';
+  // Sort: P&L items first grouped by programme, then placeholders
+  const items=MODEL.fixed_costs.items.slice().sort((a,b)=>{
+    const sa=a.source==='placeholder'?1:0;
+    const sb=b.source==='placeholder'?1:0;
+    return sa-sb;
+  });
+  items.forEach((item,i)=>{
+    const idx=MODEL.fixed_costs.items.indexOf(item);
+    const row=document.createElement('div');
+    row.className='toggle-item'+(item.enabled?'':' disabled');
+    const srcBadge=item.source==='P&L'?'<span class="badge badge-pl">P&L</span>':'<span class="badge badge-placeholder">PLACEHOLDER</span>';
+    const progBadge=item.programme?'<span class="badge badge-programme">'+item.programme+'</span>':'';
+    row.innerHTML='<div class="info"><div class="name">'+item.name+' '+srcBadge+progBadge+'</div><div class="detail">'+item.category+'</div></div><div class="amount">'+fmtHKD(item.monthly_hkd)+'</div><label class="toggle"><input type="checkbox" '+(item.enabled?'checked':'')+' onchange="toggleFixedCost('+idx+', this.checked)"><span class="slider"></span></label>';
     el.appendChild(row);
   });
-  const total = getMonthlyFixed();
-  setText('fixedTotal', fmtHKD(total));
-  setText('fixedAnnual', fmtHKD(total * 12));
+  const total=getMonthlyFixed();
+  setText('fixedTotal',fmtHKD(total));
+  setText('fixedAnnual',fmtHKD(total*12));
 }
-function toggleFixedCost(i, val) { MODEL.fixed_costs.items[i].enabled = val; renderAll(); }
+function toggleFixedCost(i,val){MODEL.fixed_costs.items[i].enabled=val;renderAll();}
 
-function renderVariableCostsEditor() {
-  const el = $el('variableCostsEditor'); if (!el) return;
-  el.innerHTML = '';
-  const avgPrice = getWeightedAvgPrice();
-  MODEL.variable_costs.items.forEach((item, i) => {
-    const row = document.createElement('div');
-    row.className = 'toggle-item' + (item.enabled ? '' : ' disabled');
-    const display = item.per_unit_hkd ? fmtHKD(item.per_unit_hkd) : (item.per_unit_pct + '% of price');
-    row.innerHTML = '<div class="info"><div class="name">' + item.name + '</div><div class="detail">' + item.category + '</div></div><div class="amount">' + display + '</div><label class="toggle"><input type="checkbox" ' + (item.enabled ? 'checked' : '') + ' onchange="toggleVariableCost(' + i + ', this.checked)"><span class="slider"></span></label>';
+function renderVariableCostsEditor(){
+  const el=$el('variableCostsEditor');if(!el)return;
+  el.innerHTML='';
+  const avgPrice=getWeightedAvgPrice();
+  MODEL.variable_costs.items.forEach((item,i)=>{
+    const row=document.createElement('div');
+    row.className='toggle-item'+(item.enabled?'':' disabled');
+    const display=item.per_unit_hkd?fmtHKD(item.per_unit_hkd):(item.per_unit_pct+'% of price');
+    row.innerHTML='<div class="info"><div class="name">'+item.name+'</div><div class="detail">'+item.category+'</div></div><div class="amount">'+display+'</div><label class="toggle"><input type="checkbox" '+(item.enabled?'checked':'')+' onchange="toggleVariableCost('+i+', this.checked)"><span class="slider"></span></label>';
     el.appendChild(row);
   });
-  const total = getVariableCostPerUnit(avgPrice);
-  setText('variableTotal', fmtHKD(total));
-  setText('contributionTotal', fmtHKD(avgPrice - total));
+  const total=getVariableCostPerUnit(avgPrice);
+  setText('variableTotal',fmtHKD(total));
+  setText('contributionTotal',fmtHKD(avgPrice-total));
 }
-function toggleVariableCost(i, val) { MODEL.variable_costs.items[i].enabled = val; renderAll(); }
+function toggleVariableCost(i,val){MODEL.variable_costs.items[i].enabled=val;renderAll();}
 
-function renderWaterfall(c) {
-  if (typeof Plotly === 'undefined') return;
-  const el = $el('waterfallChart'); if (!el) return;
-  const steps = [
-    { label: 'Avg price', value: c.avgPrice, type: 'base' },
-    { label: 'Variable costs', value: -c.variableCost, type: 'add' },
-    { label: 'Contribution', value: c.contribution, type: 'subtotal' },
-    { label: 'Fixed costs / unit', value: -(c.monthlyFixed / Math.max(c.monthlyUnitsAvg, 1)), type: 'add' },
-    { label: 'Surplus / unit', value: c.contribution - (c.monthlyFixed / Math.max(c.monthlyUnitsAvg, 1)), type: 'total' }
+function renderWaterfall(c){
+  if(typeof Plotly==='undefined')return;
+  const el=$el('waterfallChart');if(!el)return;
+  const steps=[
+    {label:'Avg price',value:c.avgPrice,type:'base'},
+    {label:'Variable costs',value:-c.variableCost,type:'add'},
+    {label:'Contribution',value:c.contribution,type:'subtotal'},
+    {label:'Fixed costs / unit',value:-(c.monthlyFixed/Math.max(c.monthlyUnitsAvg,1)),type:'add'},
+    {label:'Surplus / unit',value:c.contribution-(c.monthlyFixed/Math.max(c.monthlyUnitsAvg,1)),type:'total'}
   ];
-  const values = steps.map(s => s.value);
-  const colors = steps.map(s => s.type === 'base' ? '#1b4332' : s.type === 'subtotal' ? '#40916c' : s.type === 'total' ? '#d4a373' : s.value < 0 ? '#c62828' : '#52b788');
-  Plotly.react('waterfallChart', [{
-    type: 'waterfall', orientation: 'v',
-    x: steps.map(s => s.label), y: values,
-    measure: steps.map(s => (s.type === 'base' || s.type === 'subtotal' || s.type === 'total') ? 'absolute' : 'relative'),
-    text: values.map(v => fmtHKD(v)), textposition: 'outside',
-    marker: { color: colors }, connector: { line: { color: '#ccc' } }
-  }], { margin: { l: 50, r: 20, t: 20, b: 60 }, paper_bgcolor: 'rgba(0,0,0,0)', font: { size: 11 }, yaxis: { title: 'HKD per unit', tickprefix: 'HK$', tickformat: ',.0f' }, xaxis: { tickangle: -15 } }, { responsive: true, displayModeBar: false });
+  const values=steps.map(s=>s.value);
+  const colors=steps.map(s=>s.type==='base'?'#1b4332':s.type==='subtotal'?'#40916c':s.type==='total'?'#d4a373':s.value<0?'#c62828':'#52b788');
+  Plotly.react('waterfallChart',[{type:'waterfall',orientation:'v',x:steps.map(s=>s.label),y:values,measure:steps.map(s=>(s.type==='base'||s.type==='subtotal'||s.type==='total')?'absolute':'relative'),text:values.map(v=>fmtHKD(v)),textposition:'outside',marker:{color:colors},connector:{line:{color:'#ccc'}}}],{margin:{l:50,r:20,t:20,b:60},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},yaxis:{title:'HKD per unit',tickprefix:'HK$',tickformat:',.0f'},xaxis:{tickangle:-15}},{responsive:true,displayModeBar:false});
 }
 
-function renderScenarios() {
-  const grid = $el('scenarioGrid'); if (!grid) return;
-  grid.innerHTML = '';
-  const baseC = calculate();
-  ['best', 'base', 'worst'].forEach(key => {
-    const s = MODEL.scenarios[key];
-    const price = baseC.avgPrice * s.price_multiplier;
-    const variableCost = baseC.variableCost * s.cost_multiplier;
-    const contribution = price - variableCost;
-    const fixed = baseC.monthlyFixed * s.cost_multiplier;
-    const target = baseC.target;
-    const annualContributionRequired = fixed * 12 + target;
-    const units = contribution > 0 ? annualContributionRequired / contribution : 0;
-    const monthlyUnits = units / 12;
-    const card = document.createElement('div');
-    card.className = 'scenario-card ' + key;
-    card.innerHTML = '<h4>' + s.label + '</h4><div class="note">' + s.note + '</div><div class="stat-row"><span class="lbl">Avg price</span><span class="val">' + fmtHKD(price) + '</span></div><div class="stat-row"><span class="lbl">Contribution / unit</span><span class="val">' + fmtHKD(contribution) + '</span></div><div class="stat-row"><span class="lbl">Monthly fixed</span><span class="val">' + fmtHKDcompact(fixed) + '</span></div><div class="stat-row big"><span>Units / month needed</span><span>' + Math.ceil(monthlyUnits).toLocaleString() + '</span></div>';
+function renderScenarios(){
+  const grid=$el('scenarioGrid');if(!grid)return;
+  grid.innerHTML='';
+  const baseC=calculate();
+  ['best','base','worst'].forEach(key=>{
+    const s=MODEL.scenarios[key];
+    const price=baseC.avgPrice*s.price_multiplier;
+    const variableCost=baseC.variableCost*s.cost_multiplier;
+    const contribution=price-variableCost;
+    const fixed=baseC.monthlyFixed*s.cost_multiplier;
+    const target=baseC.target;
+    const annualContributionRequired=fixed*12+target;
+    const units=contribution>0?annualContributionRequired/contribution:0;
+    const monthlyUnits=units/12;
+    const card=document.createElement('div');
+    card.className='scenario-card '+key;
+    card.innerHTML='<h4>'+s.label+'</h4><div class="note">'+s.note+'</div><div class="stat-row"><span class="lbl">Avg price</span><span class="val">'+fmtHKD(price)+'</span></div><div class="stat-row"><span class="lbl">Contribution / unit</span><span class="val">'+fmtHKD(contribution)+'</span></div><div class="stat-row"><span class="lbl">Monthly fixed</span><span class="val">'+fmtHKDcompact(fixed)+'</span></div><div class="stat-row big"><span>Units / month needed</span><span>'+Math.ceil(monthlyUnits).toLocaleString()+'</span></div>';
     grid.appendChild(card);
   });
 }
-
-function renderHeatmaps() {
-  if (typeof Plotly === 'undefined') return;
-  const baseC = calculate();
-  const s = MODEL.sensitivity;
-  const priceRange = [], volRange = [];
-  for (let i = 0; i < s.price_steps; i++) priceRange.push(s.price_min + (s.price_max - s.price_min) * i / (s.price_steps - 1));
-  for (let i = 0; i < s.volume_steps; i++) volRange.push(s.volume_min + (s.volume_max - s.volume_min) * i / (s.volume_steps - 1));
-  const z1 = volRange.map(v => priceRange.map(p => {
-    const varCost = getVariableCostPerUnit(p);
-    return Math.round((p - varCost) * v * 12 - baseC.monthlyFixed * 12);
-  }));
-  if ($el('heatmap1')) Plotly.react('heatmap1', [{ type: 'heatmap', x: priceRange.map(p => Math.round(p)), y: volRange.map(v => Math.round(v)), z: z1, colorscale: [[0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']], hovertemplate: 'Avg price: HK$%{x}<br>Monthly units: %{y}<br>Annual surplus: HK$%{z:,}<extra></extra>', colorbar: { title: 'Annual surplus', tickprefix: 'HK$', tickformat: ',.0s' } }], { margin: { l: 60, r: 20, t: 20, b: 50 }, paper_bgcolor: 'rgba(0,0,0,0)', font: { size: 11 }, xaxis: { title: 'Average selling price (HKD)' }, yaxis: { title: 'Monthly units sold' } }, { responsive: true, displayModeBar: false });
-
-  const collRange = [], yieldRange = [];
-  for (let i = 0; i < s.collection_cost_steps; i++) collRange.push(s.collection_cost_min + (s.collection_cost_max - s.collection_cost_min) * i / (s.collection_cost_steps - 1));
-  for (let i = 0; i < s.yield_steps; i++) yieldRange.push(s.yield_min + (s.yield_max - s.yield_min) * i / (s.yield_steps - 1));
-  const target = MODEL.target.surplus_hkd;
-  const fixedAnnual = baseC.monthlyFixed * 12;
-  const z2 = yieldRange.map(y => collRange.map(c => {
-    const varCost = getVariableCostPerUnit(baseC.avgPrice) + (c - 14);
-    const contribution = baseC.avgPrice - varCost;
-    const annualContribRequired = fixedAnnual + target;
-    const units = contribution > 0 ? annualContribRequired / contribution : 0;
-    return Math.round(units * contribution - annualContribRequired);
-  }));
-  if ($el('heatmap2')) Plotly.react('heatmap2', [{ type: 'heatmap', x: collRange.map(c => c.toFixed(0)), y: yieldRange.map(y => y.toFixed(0) + '%'), z: z2, colorscale: [[0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']], hovertemplate: 'Collection cost: HK$%{x}/unit<br>Sell-through: %{y}<br>Surplus headroom: HK$%{z:,}<extra></extra>', colorbar: { title: 'Headroom', tickprefix: 'HK$', tickformat: ',.0s' } }], { margin: { l: 60, r: 20, t: 20, b: 50 }, paper_bgcolor: 'rgba(0,0,0,0)', font: { size: 11 }, xaxis: { title: 'Collection cost per unit (HKD)' }, yaxis: { title: 'Sell-through rate (%)' } }, { responsive: true, displayModeBar: false });
+function renderHeatmaps(){
+  if(typeof Plotly==='undefined')return;
+  const baseC=calculate();
+  const s=MODEL.sensitivity;
+  const priceRange=[],volRange=[];
+  for(let i=0;i<s.price_steps;i++)priceRange.push(s.price_min+(s.price_max-s.price_min)*i/(s.price_steps-1));
+  for(let i=0;i<s.volume_steps;i++)volRange.push(s.volume_min+(s.volume_max-s.volume_min)*i/(s.volume_steps-1));
+  const z1=volRange.map(v=>priceRange.map(p=>{const varCost=getVariableCostPerUnit(p);return Math.round((p-varCost)*v*12-baseC.monthlyFixed*12);}));
+  if($el('heatmap1'))Plotly.react('heatmap1',[{type:'heatmap',x:priceRange.map(p=>Math.round(p)),y:volRange.map(v=>Math.round(v)),z:z1,colorscale:[[0,'#ffebee'],[0.4,'#fff3e0'],[0.6,'#e8f5e9'],[1,'#1b4332']],hovertemplate:'Avg price: HK$%{x}<br>Monthly units: %{y}<br>Annual surplus: HK$%{z:,}<extra></extra>',colorbar:{title:'Annual surplus',tickprefix:'HK$',tickformat:',.0s'}}],{margin:{l:60,r:20,t:20,b:50},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},xaxis:{title:'Average selling price (HKD)'},yaxis:{title:'Monthly units sold'}},{responsive:true,displayModeBar:false});
+  const collRange=[],yieldRange=[];
+  for(let i=0;i<s.collection_cost_steps;i++)collRange.push(s.collection_cost_min+(s.collection_cost_max-s.collection_cost_min)*i/(s.collection_cost_steps-1));
+  for(let i=0;i<s.yield_steps;i++)yieldRange.push(s.yield_min+(s.yield_max-s.yield_min)*i/(s.yield_steps-1));
+  const target=MODEL.target.surplus_hkd;
+  const fixedAnnual=baseC.monthlyFixed*12;
+  const z2=yieldRange.map(y=>collRange.map(c=>{const varCost=getVariableCostPerUnit(baseC.avgPrice)+(c-14);const contribution=baseC.avgPrice-varCost;const acr=fixedAnnual+target;const units=contribution>0?acr/contribution:0;return Math.round(units*contribution-acr);}));
+  if($el('heatmap2'))Plotly.react('heatmap2',[{type:'heatmap',x:collRange.map(c=>c.toFixed(0)),y:yieldRange.map(y=>y.toFixed(0)+'%'),z:z2,colorscale:[[0,'#ffebee'],[0.4,'#fff3e0'],[0.6,'#e8f5e9'],[1,'#1b4332']],hovertemplate:'Collection cost: HK$%{x}/unit<br>Sell-through: %{y}<br>Surplus headroom: HK$%{z:,}<extra></extra>',colorbar:{title:'Headroom',tickprefix:'HK$',tickformat:',.0s'}}],{margin:{l:60,r:20,t:20,b:50},paper_bgcolor:'rgba(0,0,0,0)',font:{size:11},xaxis:{title:'Collection cost per unit (HKD)'},yaxis:{title:'Sell-through rate (%)'}},{responsive:true,displayModeBar:false});
 }
-
-function renderChannelMix() {
-  const el = $el('channelMix'); if (!el) return;
-  el.innerHTML = '';
-  MODEL.channels.forEach((ch, i) => {
-    const row = document.createElement('div');
-    row.className = 'toggle-item' + (ch.enabled ? '' : ' disabled');
-    row.innerHTML = '<div class="info"><div class="name">' + ch.name + '</div><div class="detail">' + ch.note + '</div></div><div class="amount">' + ch.share_pct + '%</div><label class="toggle"><input type="checkbox" ' + (ch.enabled ? 'checked' : '') + ' onchange="toggleChannel(' + i + ', this.checked)"><span class="slider"></span></label>';
+function renderChannelMix(){
+  const el=$el('channelMix');if(!el)return;
+  el.innerHTML='';
+  MODEL.channels.forEach((ch,i)=>{
+    const row=document.createElement('div');
+    row.className='toggle-item'+(ch.enabled?'':' disabled');
+    row.innerHTML='<div class="info"><div class="name">'+ch.name+'</div><div class="detail">'+ch.note+'</div></div><div class="amount">'+ch.share_pct+'%</div><label class="toggle"><input type="checkbox" '+(ch.enabled?'checked':'')+' onchange="toggleChannel('+i+', this.checked)"><span class="slider"></span></label>';
     el.appendChild(row);
   });
 }
-function toggleChannel(i, val) { MODEL.channels[i].enabled = val; renderAll(); }
+function toggleChannel(i,val){MODEL.channels[i].enabled=val;renderAll();}
 
-function showTab(name, btn) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-  if (btn) btn.classList.add('active');
-  const panel = $el('tab-' + name); if (panel) panel.style.display = 'block';
+function showTab(name,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
+  if(btn)btn.classList.add('active');
+  const panel=$el('tab-'+name);if(panel)panel.style.display='block';
 }
 
 // ============================================================
 // UPLOADER
 // ============================================================
-function openUploader() { const m = $el('uploadModal'); if (m) m.classList.add('show'); hide('uploadPreview'); hide('uploadError'); hide('uploadProgress'); }
-function closeUploader() { const m = $el('uploadModal'); if (m) m.classList.remove('show'); PENDING_UPDATE = null; }
-
-function bindDropzone() {
-  const dz = $el('dropzone'); if (!dz) return;
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--sage)'; dz.style.background = '#f0fdf4'; });
-  dz.addEventListener('dragleave', e => { e.preventDefault(); dz.style.borderColor = 'var(--border)'; dz.style.background = '#fafbfc'; });
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor = 'var(--border)'; dz.style.background = '#fafbfc'; if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+function openUploader(){const m=$el('uploadModal');if(m)m.classList.add('show');hide('uploadPreview');hide('uploadError');hide('uploadProgress');}
+function closeUploader(){const m=$el('uploadModal');if(m)m.classList.remove('show');PENDING_UPDATE=null;}
+function bindDropzone(){
+  const dz=$el('dropzone');if(!dz)return;
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--sage)';dz.style.background='#f0fdf4';});
+  dz.addEventListener('dragleave',e=>{e.preventDefault();dz.style.borderColor='var(--border)';dz.style.background='#fafbfc';});
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='var(--border)';dz.style.background='#fafbfc';if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0]);});
 }
 
-async function handleFile(file) {
-  if (!file) return;
-  hide('uploadError'); show('uploadProgress'); hide('uploadPreview');
-  setProgress(5, 'Reading file…');
-  try {
-    if (typeof XLSX === 'undefined') throw new Error('SheetJS library failed to load. Check your connection and refresh.');
-    const buf = await file.arrayBuffer();
-    setProgress(20, 'Opening workbook…');
-    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
-    const sheets = wb.SheetNames;
-    const isWarehouse = sheets.includes('IN Post consumer');
-    const isPL = sheets.includes('Profit and Loss');
-
-    if (isWarehouse) {
-      setProgress(40, 'Parsing warehouse data…');
-      const collections = parseCollections(wb);
-      setProgress(60, 'Parsing yield / sorting data…');
-      const yields = parseYields(wb);
-      setProgress(75, 'Parsing resale channels…');
-      const resale = parseResale(wb);
-      setProgress(90, 'Computing seasonality…');
-      const seasonality = computeSeasonality(collections);
-      setProgress(100, 'Done');
-      PENDING_UPDATE = { kind: 'warehouse', collections, yields, resale, seasonality, filename: file.name };
-      setTimeout(() => { hide('uploadProgress'); renderPreview(PENDING_UPDATE); }, 400);
-    } else if (isPL) {
-      setProgress(40, 'Parsing P&L…');
-      const pl = parsePL(wb);
-      setProgress(100, 'Done');
-      PENDING_UPDATE = { kind: 'pl', pl, filename: file.name };
-      setTimeout(() => { hide('uploadProgress'); renderPLPreview(PENDING_UPDATE); }, 400);
-    } else {
+async function handleFile(file){
+  if(!file)return;
+  hide('uploadError');show('uploadProgress');hide('uploadPreview');
+  setProgress(5,'Reading file…');
+  try{
+    if(typeof XLSX==='undefined')throw new Error('SheetJS library failed to load. Check your connection and refresh.');
+    const buf=await file.arrayBuffer();
+    setProgress(20,'Opening workbook…');
+    const wb=XLSX.read(buf,{type:'array',cellDates:true});
+    const sheets=wb.SheetNames;
+    const isWarehouse=sheets.includes('IN Post consumer');
+    const isPL=sheets.includes('Profit and Loss');
+    if(isWarehouse){
+      setProgress(40,'Parsing warehouse data…');
+      const collections=parseCollections(wb);
+      setProgress(60,'Parsing yield / sorting data…');
+      const yields=parseYields(wb);
+      setProgress(75,'Parsing resale channels…');
+      const resale=parseResale(wb);
+      setProgress(90,'Computing seasonality…');
+      const seasonality=computeSeasonality(collections);
+      setProgress(100,'Done');
+      PENDING_UPDATE={kind:'warehouse',collections,yields,resale,seasonality,filename:file.name};
+      setTimeout(()=>{hide('uploadProgress');renderPreview(PENDING_UPDATE);},400);
+    }else if(isPL){
+      setProgress(40,'Parsing P&L…');
+      const pl=parsePL(wb);
+      setProgress(100,'Done');
+      PENDING_UPDATE={kind:'pl',pl,filename:file.name};
+      setTimeout(()=>{hide('uploadProgress');renderPLPreview(PENDING_UPDATE);},400);
+    }else{
       throw new Error('Unrecognised file. Expected sheet "IN Post consumer" (warehouse) or "Profit and Loss" (P&L).');
     }
-  } catch (err) {
+  }catch(err){
     console.error(err);
     hide('uploadProgress');
-    const e = $el('uploadError'); if (e) { e.style.display = 'block'; e.textContent = 'Failed to parse file: ' + err.message; }
+    const e=$el('uploadError');if(e){e.style.display='block';e.textContent='Failed to parse file: '+err.message;}
   }
 }
-function setProgress(pct, text) {
-  const bar = $el('progressBar'); if (bar) bar.style.width = pct + '%';
-  const t = $el('progressText'); if (t && text) t.textContent = text;
+function setProgress(pct,text){
+  const bar=$el('progressBar');if(bar)bar.style.width=pct+'%';
+  const t=$el('progressText');if(t&&text)t.textContent=text;
 }
 
-function parseCollections(wb) {
-  const sheet = wb.Sheets['IN Post consumer']; if (!sheet) throw new Error('Sheet "IN Post consumer" not found');
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
-  const monthly = {}, byChannel = {}, byPartner = {};
-  let minYear = 9999, maxYear = 0;
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i]; if (!r) continue;
-    const dateVal = r[0];
-    const project = (r[1] || '').toString().trim();
-    const partner = (r[2] || '').toString().trim();
-    const weight = parseFloat(r[4]);
-    if (!dateVal || isNaN(weight) || weight <= 0 || weight > 100000) continue;
-    const d = toDate(dateVal); if (!d) continue;
-    const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    monthly[ym] = (monthly[ym] || 0) + weight;
-    if (project) byChannel[project] = (byChannel[project] || 0) + weight;
-    if (partner) byPartner[partner] = (byPartner[partner] || 0) + weight;
-    if (d.getFullYear() < minYear) minYear = d.getFullYear();
-    if (d.getFullYear() > maxYear) maxYear = d.getFullYear();
+function parseCollections(wb){
+  const sheet=wb.Sheets['IN Post consumer'];if(!sheet)throw new Error('Sheet "IN Post consumer" not found');
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:null});
+  const monthly={},byChannel={},byPartner={};
+  let minYear=9999,maxYear=0;
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i];if(!r)continue;
+    const dateVal=r[0];
+    const project=(r[1]||'').toString().trim();
+    const partner=(r[2]||'').toString().trim();
+    const weight=parseFloat(r[4]);
+    if(!dateVal||isNaN(weight)||weight<=0||weight>100000)continue;
+    const d=toDate(dateVal);if(!d)continue;
+    const ym=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    monthly[ym]=(monthly[ym]||0)+weight;
+    if(project)byChannel[project]=(byChannel[project]||0)+weight;
+    if(partner)byPartner[partner]=(byPartner[partner]||0)+weight;
+    if(d.getFullYear()<minYear)minYear=d.getFullYear();
+    if(d.getFullYear()>maxYear)maxYear=d.getFullYear();
   }
-  return { monthly, byChannel, byPartner, minYear, maxYear };
+  return{monthly,byChannel,byPartner,minYear,maxYear};
 }
-function toDate(v) {
-  if (v instanceof Date) return v;
-  if (typeof v === 'number') { const d = XLSX.SSF.parse_date_code(v); if (d) return new Date(d.y, d.m - 1, d.d); }
-  if (typeof v === 'string') { const d = new Date(v); if (!isNaN(d)) return d; }
+function toDate(v){
+  if(v instanceof Date)return v;
+  if(typeof v==='number'){const d=XLSX.SSF.parse_date_code(v);if(d)return new Date(d.y,d.m-1,d.d);}
+  if(typeof v==='string'){const d=new Date(v);if(!isNaN(d))return d;}
   return null;
 }
-function parseYields(wb) {
-  const sheet = wb.Sheets['TB REPORT']; if (!sheet) return null;
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
-  const blocks = []; let current = null;
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i] || [];
-    const cell0 = (r[0] || '').toString();
-    const label = (r[6] || '').toString().toLowerCase();
-    const val = parseFloat(r[7]);
-    if (/^\d{4}(\.\d+)?$/.test(cell0) || cell0.match(/^\d{4}\s*\/\s*\d{2}/)) {
-      if (current && Object.keys(current).length) blocks.push(current);
-      current = { year: cell0 };
+function parseYields(wb){
+  const sheet=wb.Sheets['TB REPORT'];if(!sheet)return null;
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:null});
+  const blocks=[];let current=null;
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i]||[];
+    const cell0=(r[0]||'').toString();
+    const label=(r[6]||'').toString().toLowerCase();
+    const val=parseFloat(r[7]);
+    if(/^\d{4}(\.\d+)?$/.test(cell0)||cell0.match(/^\d{4}\s*\/\s*\d{2}/)){
+      if(current&&Object.keys(current).length)blocks.push(current);
+      current={year:cell0};
     }
-    if (!current) current = {};
-    if (!isNaN(val)) {
-      if (label.startsWith('donation')) current.Donation = val;
-      else if (label.includes('sale')) current.Sale = val;
-      else if (label.includes('upcycling')) current.Upcycling = val;
-      else if (label.includes('downcycling')) current.Downcycling = val;
-      else if (label.includes('landfill')) current.Landfill = val;
+    if(!current)current={};
+    if(!isNaN(val)){
+      if(label.startsWith('donation'))current.Donation=val;
+      else if(label.includes('sale'))current.Sale=val;
+      else if(label.includes('upcycling'))current.Upcycling=val;
+      else if(label.includes('downcycling'))current.Downcycling=val;
+      else if(label.includes('landfill'))current.Landfill=val;
     }
   }
-  if (current && Object.keys(current).length) blocks.push(current);
-  const valid = blocks.filter(b => b.Donation && (b.Sale || b.Downcycling));
-  if (!valid.length) return null;
-  const avg = { Donation: 0, Sale: 0, Upcycling: 0, Downcycling: 0, Landfill: 0 };
-  valid.forEach(b => { avg.Donation += b.Donation||0; avg.Sale += b.Sale||0; avg.Upcycling += b.Upcycling||0; avg.Downcycling += b.Downcycling||0; avg.Landfill += b.Landfill||0; });
-  const totals = valid.map(b => (b.Donation||0)+(b.Sale||0)+(b.Upcycling||0)+(b.Downcycling||0)+(b.Landfill||0));
-  const avgTotal = totals.reduce((s,x)=>s+x,0) / totals.length;
-  Object.keys(avg).forEach(k => avg[k] = (avg[k] / valid.length) / avgTotal);
-  const sellThrough = avg.Sale / (avg.Sale + avg.Donation + avg.Downcycling);
-  return { blocks: valid.length, avg, sellThrough };
+  if(current&&Object.keys(current).length)blocks.push(current);
+  const valid=blocks.filter(b=>b.Donation&&(b.Sale||b.Downcycling));
+  if(!valid.length)return null;
+  const avg={Donation:0,Sale:0,Upcycling:0,Downcycling:0,Landfill:0};
+  valid.forEach(b=>{avg.Donation+=b.Donation||0;avg.Sale+=b.Sale||0;avg.Upcycling+=b.Upcycling||0;avg.Downcycling+=b.Downcycling||0;avg.Landfill+=b.Landfill||0;});
+  const totals=valid.map(b=>(b.Donation||0)+(b.Sale||0)+(b.Upcycling||0)+(b.Downcycling||0)+(b.Landfill||0));
+  const avgTotal=totals.reduce((s,x)=>s+x,0)/totals.length;
+  Object.keys(avg).forEach(k=>avg[k]=(avg[k]/valid.length)/avgTotal);
+  const sellThrough=avg.Sale/(avg.Sale+avg.Donation+avg.Downcycling);
+  return{blocks:valid.length,avg,sellThrough};
 }
-function parseResale(wb) {
-  const sheet = wb.Sheets['OUT(Resale+Downcycling)'] || wb.Sheets['OUT (Resale)']; if (!sheet) return null;
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
-  const channels = {}; let currentSection = null;
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i] || [];
-    const a = (r[0] || '').toString().trim();
-    const b = (r[1] || '').toString().trim();
-    const c = parseFloat(r[2]);
-    if (/Redress SSP Shop/i.test(a) || /Redress SSP Shop/i.test(b)) currentSection = 'Redress SSP Shop';
-    else if (/Retykle/i.test(a) || /Retykle/i.test(b)) currentSection = 'Retykle';
-    else if (/Green ladies/i.test(a) || /Green ladies/i.test(b)) currentSection = 'Green Ladies';
-    else if (/Hula/i.test(a) || /Hula/i.test(b)) currentSection = 'Hula';
-    else if (/Pop-up/i.test(a) || /Pop-up/i.test(b)) currentSection = 'Pop-up';
-    if (!isNaN(c) && c > 0 && c < 50000 && currentSection) channels[currentSection] = (channels[currentSection] || 0) + c;
+function parseResale(wb){
+  const sheet=wb.Sheets['OUT(Resale+Downcycling)']||wb.Sheets['OUT (Resale)'];if(!sheet)return null;
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:null});
+  const channels={};let currentSection=null;
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i]||[];
+    const a=(r[0]||'').toString().trim();
+    const b=(r[1]||'').toString().trim();
+    const c=parseFloat(r[2]);
+    if(/Redress SSP Shop/i.test(a)||/Redress SSP Shop/i.test(b))currentSection='Redress SSP Shop';
+    else if(/Retykle/i.test(a)||/Retykle/i.test(b))currentSection='Retykle';
+    else if(/Green ladies/i.test(a)||/Green ladies/i.test(b))currentSection='Green Ladies';
+    else if(/Hula/i.test(a)||/Hula/i.test(b))currentSection='Hula';
+    else if(/Pop-up/i.test(a)||/Pop-up/i.test(b))currentSection='Pop-up';
+    if(!isNaN(c)&&c>0&&c<50000&&currentSection)channels[currentSection]=(channels[currentSection]||0)+c;
   }
   return channels;
 }
-function computeSeasonality(collections) {
-  const byMonth = Array.from({ length: 12 }, () => ({ sum: 0, n: 0 }));
-  Object.entries(collections.monthly).forEach(([ym, kg]) => {
-    const m = parseInt(ym.split('-')[1]) - 1;
-    if (m >= 0 && m < 12) { byMonth[m].sum += kg; byMonth[m].n++; }
+function computeSeasonality(collections){
+  const byMonth=Array.from({length:12},()=>({sum:0,n:0}));
+  Object.entries(collections.monthly).forEach(([ym,kg])=>{
+    const m=parseInt(ym.split('-')[1])-1;
+    if(m>=0&&m<12){byMonth[m].sum+=kg;byMonth[m].n++;}
   });
-  const avg = byMonth.map(x => x.n ? x.sum / x.n : 0);
-  const total = avg.reduce((s, x) => s + x, 0);
-  return total > 0 ? avg.map(x => (x / total) * 12) : null;
+  const avg=byMonth.map(x=>x.n?x.sum/x.n:0);
+  const total=avg.reduce((s,x)=>s+x,0);
+  return total>0?avg.map(x=>(x/total)*12):null;
 }
-function parsePL(wb) {
-  const sheet = wb.Sheets['Profit and Loss'];
-  if (!sheet) throw new Error('Sheet "Profit and Loss" not found');
-  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
-  let headerRow = -1;
-  for (let i = 0; i < rows.length; i++) {
-    if ((rows[i][0] || '').toString().trim() === 'Account') { headerRow = i; break; }
+
+function parsePL(wb){
+  const sheet=wb.Sheets['Profit and Loss'];
+  if(!sheet)throw new Error('Sheet "Profit and Loss" not found');
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:null});
+
+  // Detect programme name from row 5 (index 4)
+  let programme='Unknown Programme';
+  for(let i=0;i<Math.min(10,rows.length);i++){
+    const cell=(rows[i]&&rows[i][0])?rows[i][0].toString():'';
+    const match=cell.match(/Project is (.+?)\s*\(/i);
+    if(match){programme=match[1].trim();break;}
   }
-  if (headerRow === -1) throw new Error('Could not find "Account" header row');
-  const year = (rows[headerRow][1] || 'current').toString();
-  const income = {}, expenses = {};
-  let totalIncome = 0, totalExpenses = 0, operatingProfit = 0;
-  let section = null;
-  for (let i = headerRow + 1; i < rows.length; i++) {
-    const r = rows[i] || [];
-    const label = (r[0] || '').toString().trim();
-    if (!label) continue;
-    if (label === 'Income') { section = 'income'; continue; }
-    if (label.startsWith('Less Operating')) { section = 'expenses'; continue; }
-    if (label === 'Total Income') { totalIncome = parseFloat(r[1]) || 0; section = 'summary'; continue; }
-    if (label === 'Gross Profit') continue;
-    if (label === 'Total Less Operating Expenses') { totalExpenses = parseFloat(r[1]) || 0; continue; }
-    if (label === 'Operating Profit' || label === 'Net Profit') { operatingProfit = parseFloat(r[1]) || 0; continue; }
-    const val = parseFloat(r[1]);
-    if (isNaN(val)) continue;
-    if (section === 'income') income[label] = val;
-    else if (section === 'expenses') expenses[label] = val;
+
+  // Find header row
+  let headerRow=-1;
+  for(let i=0;i<rows.length;i++){
+    if((rows[i][0]||'').toString().trim()==='Account'){headerRow=i;break;}
   }
-  return { year, income, expenses, totalIncome, totalExpenses, operatingProfit, filename: '' };
+  if(headerRow===-1)throw new Error('Could not find "Account" header row');
+  const year=(rows[headerRow][1]||'current').toString();
+
+  const income={},expenses={},costOfSales={};
+  let totalIncome=0,totalExpenses=0,totalCostOfSales=0,operatingProfit=0;
+  let section=null;
+  for(let i=headerRow+1;i<rows.length;i++){
+    const r=rows[i]||[];
+    const label=(r[0]||'').toString().trim();
+    if(!label)continue;
+    if(label==='Income'){section='income';continue;}
+    if(label==='Less Cost of Sales'){section='costofsales';continue;}
+    if(label.startsWith('Less Operating')){section='expenses';continue;}
+    if(label==='Total Income'){totalIncome=parseFloat(r[1])||0;section='summary';continue;}
+    if(label==='Total Less Cost of Sales'){totalCostOfSales=parseFloat(r[1])||0;continue;}
+    if(label==='Gross Profit')continue;
+    if(label==='Total Less Operating Expenses'){totalExpenses=parseFloat(r[1])||0;continue;}
+    if(label==='Operating Profit'||label==='Net Profit'){operatingProfit=parseFloat(r[1])||0;continue;}
+    const val=parseFloat(r[1]);
+    if(isNaN(val))continue;
+    if(section==='income')income[label]=val;
+    else if(section==='expenses')expenses[label]=val;
+    else if(section==='costofsales')costOfSales[label]=val;
+  }
+
+  return{programme,year,income,expenses,costOfSales,totalIncome,totalCostOfSales,totalExpenses,operatingProfit};
 }
-function plLineToFixedCost(label, annualValue) {
-  const monthly = Math.round(annualValue / 12);
-  const map = {
-    'Office / Warehouse Rental':      { category: 'Facilities',  name: 'Rent (shop + warehouse) — from P&L' },
-    'Local Travel / Logistics':       { category: 'Logistics',   name: 'Local travel & logistics — from P&L' },
-    'Legal and professional fee':     { category: 'Operations',  name: 'Legal & professional — from P&L' },
-    'Government rates / Utilities':   { category: 'Facilities',  name: 'Rates & utilities — from P&L' },
-    'Office/shop/warehouse supplies': { category: 'Operations',  name: 'Shop / warehouse supplies — from P&L' },
-    'Freelancer Costs':               { category: 'People',      name: 'Freelancers & contractors — from P&L' },
-    'Event Production':               { category: 'Growth',      name: 'Event production — from P&L' },
-    'Food & Beverage':                { category: 'Operations',  name: 'Food & beverage — from P&L' },
-    'Bank charges':                   { category: 'Transaction', name: 'Bank charges — from P&L' },
-    'Insurance':                      { category: 'Operations',  name: 'Insurance — from P&L' }
+function plLineToFixedCost(label,annualValue,programme,isCostOfSales){
+  const monthly=Math.round(annualValue/12);
+  const map={
+    'Office / Warehouse Rental':{category:'Facilities',name:'Rent (shop + warehouse)'},
+    'Local Travel / Logistics':{category:'Logistics',name:'Local travel & logistics'},
+    'Legal and professional fee':{category:'Operations',name:'Legal & professional'},
+    'Government rates / Utilities':{category:'Facilities',name:'Rates & utilities'},
+    'Office/shop/warehouse supplies':{category:'Operations',name:'Shop / warehouse supplies'},
+    'Freelancer Costs':{category:'People',name:'Freelancers & contractors'},
+    'Event Production':{category:'Growth',name:'Event production'},
+    'Food & Beverage':{category:'Operations',name:'Food & beverage'},
+    'Bank charges':{category:'Transaction',name:'Bank charges'},
+    'Insurance':{category:'Operations',name:'Insurance'},
+    'Advertising & marketing':{category:'Growth',name:'Advertising & marketing'},
+    'Software & Subscriptions':{category:'Operations',name:'Software & subscriptions'},
+    'Telecommunication expenses':{category:'Operations',name:'Telecommunication'},
+    'Commission':{category:'Cost of Sales',name:'Sales commission'}
   };
-  const m = map[label] || { category: 'Operations', name: label + ' — from P&L' };
-  const id = 'pl_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-  return { id, name: m.name, monthly_hkd: monthly, enabled: true, category: m.category, source: 'P&L' };
+  const m=map[label]||{category:isCostOfSales?'Cost of Sales':'Operations',name:label};
+  const id='pl_'+programme.toLowerCase().replace(/[^a-z0-9]+/g,'_')+'_'+label.toLowerCase().replace(/[^a-z0-9]+/g,'_');
+  return{id,name:m.name,monthly_hkd:monthly,enabled:true,category:m.category,source:'P&L',programme:programme};
 }
 
-function renderPreview(u) {
-  const el = $el('previewContent'); if (!el) return;
-  const c = u.collections;
-  const totalKg = Object.values(c.monthly).reduce((s, x) => s + x, 0);
-  const recentYear = c.maxYear;
-  const recentKg = Object.entries(c.monthly).filter(([ym]) => ym.startsWith(recentYear)).reduce((s, [, kg]) => s + kg, 0);
-  const channelRows = Object.entries(c.byChannel).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => '<tr><td style="padding:4px 8px;color:var(--text-muted);">' + k + '</td><td style="padding:4px 8px;text-align:right;font-weight:600;">' + Math.round(v).toLocaleString() + ' kg</td></tr>').join('');
-  const partnerRows = Object.entries(c.byPartner).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => '<tr><td style="padding:4px 8px;color:var(--text-muted);">' + k + '</td><td style="padding:4px 8px;text-align:right;font-weight:600;">' + Math.round(v).toLocaleString() + ' kg</td></tr>').join('');
-  const y = u.yields;
-  const yieldBlock = y ? '<div style="background:#f0fdf4;padding:14px;border-radius:8px;margin-top:14px;"><div style="font-weight:700;color:var(--forest);margin-bottom:8px;">Yield rates (averaged across ' + y.blocks + ' monthly sortings)</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;"><div><div style="color:var(--text-muted);">Donation</div><div style="font-weight:700;font-size:16px;">' + (y.avg.Donation*100).toFixed(1) + '%</div></div><div><div style="color:var(--text-muted);">Sale / resale</div><div style="font-weight:700;font-size:16px;color:var(--sage);">' + (y.avg.Sale*100).toFixed(1) + '%</div></div><div><div style="color:var(--text-muted);">Downcycling</div><div style="font-weight:700;font-size:16px;">' + (y.avg.Downcycling*100).toFixed(1) + '%</div></div><div><div style="color:var(--text-muted);">Landfill</div><div style="font-weight:700;font-size:16px;color:#c62828;">' + (y.avg.Landfill*100).toFixed(1) + '%</div></div></div><div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Sell-through (sale ÷ sellable pool): <strong>' + (y.sellThrough*100).toFixed(1) + '%</strong></div></div>' : '<div style="color:#c62828;margin-top:14px;font-size:13px;">⚠ Could not parse TB REPORT yields</div>';
-
-  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Total collected</div><div style="font-size:22px;font-weight:700;color:var(--forest);">' + Math.round(totalKg).toLocaleString() + ' kg</div><div style="font-size:11px;color:var(--text-muted);">' + c.minYear + '–' + c.maxYear + '</div></div><div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">' + recentYear + ' YTD</div><div style="font-size:22px;font-weight:700;color:var(--forest);">' + Math.round(recentKg).toLocaleString() + ' kg</div><div style="font-size:11px;color:var(--text-muted);">≈ ' + Math.round(recentKg / KG_PER_UNIT).toLocaleString() + ' items</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;"><div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Top channels</div><table style="width:100%;font-size:12px;">' + channelRows + '</table></div><div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Top partners</div><table style="width:100%;font-size:12px;">' + partnerRows + '</table></div></div>' + yieldBlock + '<div style="margin-top:14px;font-size:12px;color:var(--text-muted);"><strong>Assumption used:</strong> 1 item ≈ ' + KG_PER_UNIT + ' kg (' + (1/KG_PER_UNIT) + ' items per kg).</div>';
+function renderPreview(u){
+  const el=$el('previewContent');if(!el)return;
+  const c=u.collections;
+  const totalKg=Object.values(c.monthly).reduce((s,x)=>s+x,0);
+  const recentYear=c.maxYear;
+  const recentKg=Object.entries(c.monthly).filter(([ym])=>ym.startsWith(recentYear)).reduce((s,[,kg])=>s+kg,0);
+  const channelRows=Object.entries(c.byChannel).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>'<tr><td style="padding:4px 8px;color:var(--text-muted);">'+k+'</td><td style="padding:4px 8px;text-align:right;font-weight:600;">'+Math.round(v).toLocaleString()+' kg</td></tr>').join('');
+  const partnerRows=Object.entries(c.byPartner).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>'<tr><td style="padding:4px 8px;color:var(--text-muted);">'+k+'</td><td style="padding:4px 8px;text-align:right;font-weight:600;">'+Math.round(v).toLocaleString()+' kg</td></tr>').join('');
+  const y=u.yields;
+  const yieldBlock=y?'<div style="background:#f0fdf4;padding:14px;border-radius:8px;margin-top:14px;"><div style="font-weight:700;color:var(--forest);margin-bottom:8px;">Yield rates (averaged across '+y.blocks+' monthly sortings)</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;"><div><div style="color:var(--text-muted);">Donation</div><div style="font-weight:700;font-size:16px;">'+(y.avg.Donation*100).toFixed(1)+'%</div></div><div><div style="color:var(--text-muted);">Sale / resale</div><div style="font-weight:700;font-size:16px;color:var(--sage);">'+(y.avg.Sale*100).toFixed(1)+'%</div></div><div><div style="color:var(--text-muted);">Downcycling</div><div style="font-weight:700;font-size:16px;">'+(y.avg.Downcycling*100).toFixed(1)+'%</div></div><div><div style="color:var(--text-muted);">Landfill</div><div style="font-weight:700;font-size:16px;color:#c62828;">'+(y.avg.Landfill*100).toFixed(1)+'%</div></div></div><div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Sell-through (sale ÷ sellable pool): <strong>'+(y.sellThrough*100).toFixed(1)+'%</strong></div></div>':'<div style="color:#c62828;margin-top:14px;font-size:13px;">⚠ Could not parse TB REPORT yields</div>';
+  el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Total collected</div><div style="font-size:22px;font-weight:700;color:var(--forest);">'+Math.round(totalKg).toLocaleString()+' kg</div><div style="font-size:11px;color:var(--text-muted);">'+c.minYear+'–'+c.maxYear+'</div></div><div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">'+recentYear+' YTD</div><div style="font-size:22px;font-weight:700;color:var(--forest);">'+Math.round(recentKg).toLocaleString()+' kg</div><div style="font-size:11px;color:var(--text-muted);">≈ '+Math.round(recentKg/KG_PER_UNIT).toLocaleString()+' items</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;"><div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Top channels</div><table style="width:100%;font-size:12px;">'+channelRows+'</table></div><div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Top partners</div><table style="width:100%;font-size:12px;">'+partnerRows+'</table></div></div>'+yieldBlock+'<div style="margin-top:14px;font-size:12px;color:var(--text-muted);"><strong>Assumption:</strong> 1 item ≈ '+KG_PER_UNIT+' kg.</div>';
   show('uploadPreview');
 }
 
-function renderPLPreview(u) {
-  const el = $el('previewContent'); if (!el) return;
-  const p = u.pl;
-  const rowsHTML = Object.entries(p.expenses).map(([k, v]) =>
-    '<tr><td style="padding:4px 8px;color:var(--text-muted);">' + k + '</td><td style="padding:4px 8px;text-align:right;font-weight:600;">HK$' + Math.round(v).toLocaleString() + '</td><td style="padding:4px 8px;text-align:right;color:var(--text-muted);">HK$' + Math.round(v/12).toLocaleString() + '/mo</td></tr>'
-  ).join('');
-  const incomeRowsHTML = Object.entries(p.income).map(([k, v]) =>
-    '<tr><td style="padding:4px 8px;color:var(--text-muted);">' + k + '</td><td style="padding:4px 8px;text-align:right;font-weight:600;">HK$' + Math.round(v).toLocaleString() + '</td></tr>'
-  ).join('');
-  el.innerHTML =
-    '<div class="warn-banner">' +
-      '⚠ <strong>Heads-up:</strong> Applying this P&L will <strong>replace all placeholder fixed costs</strong> with real operating expenses. If you want to keep placeholder staff costs (the P&L does not include a staff line), re-enable them manually afterwards.' +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">' +
-      '<div style="background:#ecfdf5;padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Total income</div><div style="font-size:20px;font-weight:700;color:var(--forest);">HK$' + Math.round(p.totalIncome).toLocaleString() + '</div></div>' +
-      '<div style="background:#fef2f2;padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Total expenses</div><div style="font-size:20px;font-weight:700;color:#c62828;">HK$' + Math.round(p.totalExpenses).toLocaleString() + '</div></div>' +
-      '<div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Operating profit</div><div style="font-size:20px;font-weight:700;color:var(--forest);">HK$' + Math.round(p.operatingProfit).toLocaleString() + '</div></div>' +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
-      '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Income</div><table style="width:100%;font-size:12px;">' + incomeRowsHTML + '</table></div>' +
-      '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Operating expenses</div><table style="width:100%;font-size:12px;">' + rowsHTML + '</table></div>' +
-    '</div>' +
+function renderPLPreview(u){
+  const el=$el('previewContent');if(!el)return;
+  const p=u.pl;
+  const rowsHTML=Object.entries(p.expenses).map(([k,v])=>'<tr><td style="padding:4px 8px;color:var(--text-muted);">'+k+'</td><td style="padding:4px 8px;text-align:right;font-weight:600;">HK$'+Math.round(v).toLocaleString()+'</td><td style="padding:4px 8px;text-align:right;color:var(--text-muted);">HK$'+Math.round(v/12).toLocaleString()+'/mo</td></tr>').join('');
+  const incomeRowsHTML=Object.entries(p.income).map(([k,v])=>'<tr><td style="padding:4px 8px;color:var(--text-muted);">'+k+'</td><td style="padding:4px 8px;text-align:right;font-weight:600;">HK$'+Math.round(v).toLocaleString()+'</td></tr>').join('');
+  const existingProgrammes=MODEL.pl_actuals&&MODEL.pl_actuals.programmes?Object.keys(MODEL.pl_actuals.programmes):[];
+  const alreadyExists=existingProgrammes.includes(p.programme);
+  el.innerHTML=
+    '<div style="background:var(--forest);color:#fff;padding:14px;border-radius:8px;margin-bottom:14px;">'+
+      '<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.7;">Detected programme</div>'+
+      '<div style="font-size:22px;font-weight:700;margin-top:4px;">'+p.programme+'</div>'+
+      '<div style="font-size:11px;opacity:0.7;margin-top:4px;">'+p.year+' · '+u.filename+'</div>'+
+    '</div>'+
+    (alreadyExists?'<div class="warn-banner">⚠ <strong>Replacing existing '+p.programme+' data.</strong> The previous upload for this programme will be overwritten.</div>':'')+
+    '<div class="warn-banner">⚠ <strong>Heads-up:</strong> This will <strong>replace placeholder fixed costs</strong> with real operating expenses from this P&L. If you want to keep placeholder staff costs, re-enable them manually afterwards.</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">'+
+      '<div style="background:#ecfdf5;padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Total income</div><div style="font-size:20px;font-weight:700;color:var(--forest);">HK$'+Math.round(p.totalIncome).toLocaleString()+'</div></div>'+
+      '<div style="background:#fef2f2;padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Total costs</div><div style="font-size:20px;font-weight:700;color:#c62828;">HK$'+Math.round(p.totalExpenses+(p.totalCostOfSales||0)).toLocaleString()+'</div></div>'+
+      '<div style="background:var(--cream);padding:14px;border-radius:8px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Operating profit</div><div style="font-size:20px;font-weight:700;color:var(--forest);">HK$'+Math.round(p.operatingProfit).toLocaleString()+'</div></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'+
+      '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Income</div><table style="width:100%;font-size:12px;">'+incomeRowsHTML+'</table></div>'+
+      '<div><div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--forest);">Operating expenses</div><table style="width:100%;font-size:12px;">'+rowsHTML+'</table></div>'+
+    '</div>'+
     '<div style="margin-top:14px;font-size:12px;color:var(--text-muted);">Each expense line will be <strong>divided by 12</strong> to become a monthly fixed cost.</div>';
   show('uploadPreview');
 }
 
-function applyPendingUpdate() {
-  if (!PENDING_UPDATE) return;
-  if (PENDING_UPDATE.kind === 'pl') return applyPL();
+function applyPendingUpdate(){
+  if(!PENDING_UPDATE)return;
+  if(PENDING_UPDATE.kind==='pl')return applyPL();
   return applyUpload();
 }
 
-function applyUpload() {
-  if (!PENDING_UPDATE || PENDING_UPDATE.kind !== 'warehouse' || !MODEL) return;
-  const u = PENDING_UPDATE;
-  if (u.yields && u.yields.sellThrough > 0) {
-    MODEL.yield.sell_through_pct = Math.round(u.yields.sellThrough * 100);
-    MODEL.yield.notes = 'Derived from TB REPORT averages (' + u.yields.blocks + ' months)';
-  }
-  if (u.seasonality) {
-    MODEL.seasonality.monthly_weights = u.seasonality.map(w => +w.toFixed(3));
-    MODEL.seasonality.notes = 'Derived from actual collection data ' + u.collections.minYear + '–' + u.collections.maxYear;
-  }
-  if (u.collections.byChannel) {
-    const entries = Object.entries(u.collections.byChannel).sort((a,b)=>b[1]-a[1]);
-    const total = entries.reduce((s,[,v])=>s+v,0);
-    MODEL.channels.forEach(ch => {
-      const match = entries.find(([k]) => k.toLowerCase().includes(ch.id.replace('_',' ')));
-      if (match) ch.share_pct = Math.round((match[1]/total)*100);
+function applyUpload(){
+  if(!PENDING_UPDATE||PENDING_UPDATE.kind!=='warehouse'||!MODEL)return;
+  const u=PENDING_UPDATE;
+  if(u.yields&&u.yields.sellThrough>0){MODEL.yield.sell_through_pct=Math.round(u.yields.sellThrough*100);MODEL.yield.notes='Derived from TB REPORT averages ('+u.yields.blocks+' months)';}
+  if(u.seasonality){MODEL.seasonality.monthly_weights=u.seasonality.map(w=>+w.toFixed(3));MODEL.seasonality.notes='Derived from actual collection data '+u.collections.minYear+'–'+u.collections.maxYear;}
+  if(u.collections.byChannel){
+    const entries=Object.entries(u.collections.byChannel).sort((a,b)=>b[1]-a[1]);
+    const total=entries.reduce((s,[,v])=>s+v,0);
+    MODEL.channels.forEach(ch=>{
+      const match=entries.find(([k])=>k.toLowerCase().includes(ch.id.replace('_',' ')));
+      if(match)ch.share_pct=Math.round((match[1]/total)*100);
     });
   }
-  MODEL.derived_from_excel = { total_kg: Math.round(Object.values(u.collections.monthly).reduce((s,x)=>s+x,0)), kg_per_unit: KG_PER_UNIT, last_upload: new Date().toISOString().slice(0,10), top_partners: Object.entries(u.collections.byPartner).sort((a,b)=>b[1]-a[1]).slice(0,10), resale_channels: u.resale };
-  EXCEL_UPLOADED = true;
-  EXCEL_FILENAME = u.filename;
+  MODEL.derived_from_excel={total_kg:Math.round(Object.values(u.collections.monthly).reduce((s,x)=>s+x,0)),kg_per_unit:KG_PER_UNIT,last_upload:new Date().toISOString().slice(0,10),top_partners:Object.entries(u.collections.byPartner).sort((a,b)=>b[1]-a[1]).slice(0,10),resale_channels:u.resale};
+  EXCEL_UPLOADED=true;
+  EXCEL_FILENAME=u.filename;
   renderAll();
   closeUploader();
 }
 
-function applyPL() {
-  if (!PENDING_UPDATE || PENDING_UPDATE.kind !== 'pl' || !MODEL) return;
-  const p = PENDING_UPDATE.pl;
-  const filename = PENDING_UPDATE.filename;
-  const newItems = Object.entries(p.expenses).filter(([, v]) => v > 0).map(([label, val]) => plLineToFixedCost(label, val));
-  MODEL.fixed_costs.items = newItems;
-  MODEL.fixed_costs.enabled = true;
-  MODEL.pl_actuals = { year: p.year, filename: filename, last_upload: new Date().toISOString().slice(0, 10), income: p.income, expenses: p.expenses, total_income: p.totalIncome, total_expenses: p.totalExpenses, operating_profit: p.operatingProfit };
-  PL_UPLOADED = true;
-  PL_FILENAME = filename;
+function applyPL(){
+  if(!PENDING_UPDATE||PENDING_UPDATE.kind!=='pl'||!MODEL)return;
+  const p=PENDING_UPDATE.pl;
+  const filename=PENDING_UPDATE.filename;
+
+  if(!MODEL.pl_actuals)MODEL.pl_actuals={programmes:{},last_upload:null};
+  if(!MODEL.pl_actuals.programmes)MODEL.pl_actuals.programmes={};
+
+  const existingNames=Object.keys(MODEL.pl_actuals.programmes);
+  const isFirstPL=existingNames.length===0 && !existingNames.includes(p.programme);
+
+  // Store this programme
+  MODEL.pl_actuals.programmes[p.programme]={
+    year:p.year,
+    filename:filename,
+    last_upload:new Date().toISOString().slice(0,10),
+    income:p.income,
+    expenses:p.expenses,
+    cost_of_sales:p.costOfSales||{},
+    total_income:p.totalIncome,
+    total_cost_of_sales:p.totalCostOfSales||0,
+    total_expenses:p.totalExpenses,
+    operating_profit:p.operatingProfit
+  };
+  MODEL.pl_actuals.last_upload=new Date().toISOString().slice(0,10);
+
+  // Update fixed costs
+  if(isFirstPL){
+    // First P&L ever — clear all placeholders
+    MODEL.fixed_costs.items=[];
+  }else{
+    // Remove items from this same programme (re-upload case)
+    MODEL.fixed_costs.items=MODEL.fixed_costs.items.filter(i=>i.programme!==p.programme);
+  }
+
+  // Add cost of sales lines
+  Object.entries(p.costOfSales||{}).filter(([,v])=>v>0).forEach(([label,val])=>{
+    MODEL.fixed_costs.items.push(plLineToFixedCost(label,val,p.programme,true));
+  });
+  // Add operating expense lines
+  Object.entries(p.expenses).filter(([,v])=>v>0).forEach(([label,val])=>{
+    MODEL.fixed_costs.items.push(plLineToFixedCost(label,val,p.programme,false));
+  });
+
+  MODEL.fixed_costs.enabled=true;
+  PL_UPLOADED=true;
   renderAll();
   closeUploader();
 }
@@ -1111,8 +1129,8 @@ function applyPL() {
 // ============================================================
 // BOOT
 // ============================================================
-function boot() { bindDropzone(); loadModel(); }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+function boot(){bindDropzone();loadModel();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
 else boot();
 </script>
 </body>
