@@ -83,6 +83,7 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 .toggle input:checked + .slider:before{transform:translateX(18px);}
 .big-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:18px;font-weight:700;color:var(--forest);font-family:ui-monospace,monospace;background:#fff;}
 .big-input:focus{outline:none;border-color:var(--sage);}
+.input-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;display:block;}
 .scenario-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
 .scenario-card{background:#fff;border-radius:12px;padding:22px;box-shadow:0 2px 8px rgba(0,0,0,0.05);border-top:4px solid var(--sage);}
 .scenario-card.best{border-top-color:var(--success);}
@@ -400,7 +401,9 @@ let PL_UPLOADED=false;
 let PENDING_UPDATE=null;
 let KG_PER_UNIT=parseFloat(localStorage.getItem('redress_kg_per_piece'))||0.18;
 let PRICE_MULTIPLIER=parseFloat(localStorage.getItem('redress_price_multiplier'))||1;
-let MANPOWER_ANNUAL=parseFloat(localStorage.getItem('redress_manpower_annual'))||1194321;
+let MANPOWER_SSP_ANNUAL=parseFloat(localStorage.getItem('redress_manpower_ssp_annual'))||800000;
+let MANPOWER_POPUP_ANNUAL=parseFloat(localStorage.getItem('redress_manpower_popup_annual'))||394321;
+let SSP_RENT_MONTHLY=parseFloat(localStorage.getItem('redress_ssp_rent_monthly'))||0;
 
 const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_KEYS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -460,10 +463,24 @@ function getLoadedSources(){
       loaded:true,programme:name
     });
   });
+  // Manual inputs
   s.push({
-    id:'manpower',label:'Central manpower (manual)',file:'Manual input · HK$'+Math.round(MANPOWER_ANNUAL).toLocaleString()+'/year',
-    detail:'HK$'+Math.round(MANPOWER_ANNUAL/12).toLocaleString()+'/month added to fixed costs',
-    loaded:true,isManual:true
+    id:'manual-ssp-mp', label:'SSP Shop manpower (manual)',
+    file:'Annual HK$'+Math.round(MANPOWER_SSP_ANNUAL).toLocaleString(),
+    detail:'HK$'+Math.round(MANPOWER_SSP_ANNUAL/12).toLocaleString()+'/month allocated to SSP Shop',
+    loaded:true, isManual:true
+  });
+  s.push({
+    id:'manual-popup-mp', label:'Pop-up manpower (manual)',
+    file:'Annual HK$'+Math.round(MANPOWER_POPUP_ANNUAL).toLocaleString(),
+    detail:'HK$'+Math.round(MANPOWER_POPUP_ANNUAL/12).toLocaleString()+'/month allocated to Pop-up',
+    loaded:true, isManual:true
+  });
+  s.push({
+    id:'manual-ssp-rent', label:'SSP Shop rent (manual)',
+    file:'Monthly HK$'+Math.round(SSP_RENT_MONTHLY).toLocaleString(),
+    detail:'HK$'+Math.round(SSP_RENT_MONTHLY*12).toLocaleString()+'/year',
+    loaded:true, isManual:true
   });
   return s;
 }
@@ -486,11 +503,15 @@ function renderSourcesIndicator(){
     const badge=s.loaded?'<span style="color:var(--success);font-weight:700;">✓</span>':'<span style="color:#9ca3af;font-weight:700;">○</span>';
     const fileLine=s.loaded?'<div style="font-size:11px;color:var(--text-muted);margin-top:3px;word-break:break-all;">📄 '+s.file+'</div>':'<div style="font-size:11px;color:#9ca3af;margin-top:3px;font-style:italic;">not uploaded</div>';
     const detail=s.detail?'<div style="font-size:11px;color:var(--text-muted);margin-top:3px;">'+s.detail+'</div>':'';
-    const action=s.isManual?
-      '<button onclick="event.stopPropagation();closeSourcesPopover();document.getElementById(\'manpowerInput\').focus();" style="background:none;border:1px solid var(--border);color:var(--forest);font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;flex-shrink:0;">Edit</button>':
-      (s.loaded?
-        '<button onclick="event.stopPropagation();removeSource(\''+s.id+'\')" style="background:none;border:1px solid var(--border);color:var(--danger);font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;flex-shrink:0;">Remove</button>':
-        '<button onclick="event.stopPropagation();closeSourcesPopover();openUploader();" style="background:var(--sage);color:#fff;border:none;font-size:11px;cursor:pointer;padding:4px 10px;border-radius:5px;flex-shrink:0;">Upload</button>');
+    let action;
+    if(s.isManual){
+      const focusId = s.id==='manual-ssp-mp' ? 'manpowerSSPInput' : s.id==='manual-popup-mp' ? 'manpowerPopupInput' : 'sspRentInput';
+      action = '<button onclick="event.stopPropagation();closeSourcesPopover();const el=document.getElementById(\''+focusId+'\');if(el){el.scrollIntoView({behavior:\'smooth\',block:\'center\'});el.focus();}" style="background:none;border:1px solid var(--border);color:var(--forest);font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;flex-shrink:0;">Edit</button>';
+    }else if(s.loaded){
+      action = '<button onclick="event.stopPropagation();removeSource(\''+s.id+'\')" style="background:none;border:1px solid var(--border);color:var(--danger);font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;flex-shrink:0;">Remove</button>';
+    }else{
+      action = '<button onclick="event.stopPropagation();closeSourcesPopover();openUploader();" style="background:var(--sage);color:#fff;border:none;font-size:11px;cursor:pointer;padding:4px 10px;border-radius:5px;flex-shrink:0;">Upload</button>';
+    }
     return '<div style="padding:12px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--forest);">'+badge+' '+s.label+'</div>'+fileLine+detail+'</div>'+action+'</div>';
   }).join('');
   const allLoaded=loaded===total;
@@ -563,9 +584,10 @@ function updateAllSources(){
       const files=[...new Set(names.map(n=>progs[n].filename))];
       parts.push('<strong>'+files.join(' + ')+'</strong>');
     }
-    parts.push('<strong>Manual</strong> manpower input');
+    const manualCount = [MANPOWER_SSP_ANNUAL, MANPOWER_POPUP_ANNUAL, SSP_RENT_MONTHLY].filter(x=>x>0).length;
+    if(manualCount>0) parts.push('<strong>'+manualCount+' manual input'+(manualCount>1?'s':'')+'</strong>');
     fc.innerHTML='Source: '+parts.join(' + ');
-    if(names.length||MANPOWER_ANNUAL>0)fc.classList.add('real');
+    if(names.length||manualCount>0)fc.classList.add('real');
   }
   const banner=$el('provenanceBanner');if(!banner)return;
   const parts=[];
@@ -576,7 +598,11 @@ function updateAllSources(){
     const files=[...new Set(Object.keys(progs).map(n=>progs[n].filename))];
     if(files.length)parts.push('Programme economics from <strong>'+files.join(' + ')+'</strong>');
   }
-  if(MANPOWER_ANNUAL>0)parts.push('Manpower ('+fmtHKD(MANPOWER_ANNUAL)+'/year) from <strong>manual input</strong>');
+  const manualParts=[];
+  if(MANPOWER_SSP_ANNUAL>0)manualParts.push('SSP manpower '+fmtHKD(MANPOWER_SSP_ANNUAL)+'/yr');
+  if(MANPOWER_POPUP_ANNUAL>0)manualParts.push('Pop-up manpower '+fmtHKD(MANPOWER_POPUP_ANNUAL)+'/yr');
+  if(SSP_RENT_MONTHLY>0)manualParts.push('SSP rent '+fmtHKD(SSP_RENT_MONTHLY)+'/mo');
+  if(manualParts.length)parts.push('Manual inputs ('+manualParts.join(' · ')+')');
   if(parts.length){
     banner.innerHTML='<strong>Data provenance:</strong> '+parts.join(' · ')+'.';
     banner.classList.add('show');
@@ -594,9 +620,6 @@ async function loadModel(){
     originalModel=JSON.parse(JSON.stringify(MODEL));
     if(!localStorage.getItem('redress_kg_per_piece') && MODEL.kg_per_piece){
       KG_PER_UNIT=MODEL.kg_per_piece;
-    }
-    if(!localStorage.getItem('redress_manpower_annual') && MODEL.manpower && MODEL.manpower.annual_hkd){
-      MANPOWER_ANNUAL=MODEL.manpower.annual_hkd;
     }
     setText('metaDate','Model v'+MODEL.version+' · '+MODEL.last_updated);
     const ti=$el('targetInput');if(ti)ti.value=MODEL.target.surplus_hkd;
@@ -664,21 +687,31 @@ function computeCostToServe(){
   const popPieces = (popSemi.pieces||0) + (popAdhoc.pieces||0);
   const popSales = (popSemi.sales||0) + (popAdhoc.sales||0);
   
-  if(progs['SSP Shop']){
-    const totalCosts = progs['SSP Shop'].total_expenses + (progs['SSP Shop'].total_cost_of_sales || 0);
+  const sspPL = progs['SSP Shop'] ? (progs['SSP Shop'].total_expenses + (progs['SSP Shop'].total_cost_of_sales || 0)) : 0;
+  const popPL = progs['Pop-up'] ? (progs['Pop-up'].total_expenses + (progs['Pop-up'].total_cost_of_sales || 0)) : 0;
+  
+  const sspTotalCosts = sspPL + MANPOWER_SSP_ANNUAL + (SSP_RENT_MONTHLY * 12);
+  const popTotalCosts = popPL + MANPOWER_POPUP_ANNUAL;
+  
+  if(progs['SSP Shop'] || sspTotalCosts > 0){
     result.SSP = {
-      totalCosts,
+      totalCosts: sspTotalCosts,
+      plCosts: sspPL,
+      manpower: MANPOWER_SSP_ANNUAL,
+      rent: SSP_RENT_MONTHLY * 12,
       units: sspData.pieces || 0,
-      costPerUnit: sspData.pieces > 0 ? totalCosts / sspData.pieces : 0,
+      costPerUnit: sspData.pieces > 0 ? sspTotalCosts / sspData.pieces : 0,
       asp: sspData.pieces > 0 ? sspData.sales / sspData.pieces : 0
     };
   }
-  if(progs['Pop-up']){
-    const totalCosts = progs['Pop-up'].total_expenses + (progs['Pop-up'].total_cost_of_sales || 0);
+  if(progs['Pop-up'] || popTotalCosts > 0){
     result.PopUp = {
-      totalCosts,
+      totalCosts: popTotalCosts,
+      plCosts: popPL,
+      manpower: MANPOWER_POPUP_ANNUAL,
+      rent: 0,
       units: popPieces,
-      costPerUnit: popPieces > 0 ? totalCosts / popPieces : 0,
+      costPerUnit: popPieces > 0 ? popTotalCosts / popPieces : 0,
       asp: popPieces > 0 ? popSales / popPieces : 0
     };
   }
@@ -704,10 +737,13 @@ function getProgramFixed(){
   return MODEL.fixed_costs.items.filter(i=>i.enabled).reduce((s,i)=>s+i.monthly_hkd,0);
 }
 function getManpowerMonthly(){
-  return MANPOWER_ANNUAL>0 ? MANPOWER_ANNUAL/12 : 0;
+  return (MANPOWER_SSP_ANNUAL + MANPOWER_POPUP_ANNUAL) / 12;
+}
+function getSSPRentMonthly(){
+  return SSP_RENT_MONTHLY;
 }
 function getMonthlyFixed(){
-  return getProgramFixed() + getManpowerMonthly();
+  return getProgramFixed() + getManpowerMonthly() + getSSPRentMonthly();
 }
 function getVariableCostPerUnit(avgPrice){
   if(!MODEL.variable_costs.enabled)return 0;
@@ -734,7 +770,8 @@ function calculate(){
   const contribution=avgPrice-variableCost;
   const programFixed=getProgramFixed();
   const manpowerMonthly=getManpowerMonthly();
-  const monthlyFixed=programFixed+manpowerMonthly;
+  const rentMonthly=getSSPRentMonthly();
+  const monthlyFixed=programFixed+manpowerMonthly+rentMonthly;
   const target=MODEL.target.surplus_hkd;
   const period=getPeriodInfo();
   const periodMonths=period.months;
@@ -778,7 +815,7 @@ function calculate(){
 
   return{
     avgPrice, variableCost, contribution,
-    monthlyFixed, programFixed, manpowerMonthly,
+    monthlyFixed, programFixed, manpowerMonthly, rentMonthly,
     periodUnits, monthlyUnitsAvg,
     periodMonths, periodList:period.list, periodLabel:period.label,
     periodVolumes, periodWeights,
@@ -980,14 +1017,29 @@ function renderPLSection(){
     const pctDiff = lower.costPerUnit > 0 ? (diff/lower.costPerUnit)*100 : 0;
     
     html+='<div style="margin-top:22px;">'+
-      '<div style="font-size:13px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Cost to serve — SSP Shop vs Pop-up</div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Cost to serve — SSP Shop vs Pop-up (fully loaded)</div>'+
       '<div class="pl-grid" style="grid-template-columns:1fr 1fr 1fr 1fr;">'+
-        '<div class="pl-card"><div class="lbl">SSP Shop cost / piece</div><div class="val">'+fmtHKD(ssp.costPerUnit)+'</div><div class="sub">'+fmtHKDcompact(ssp.totalCosts)+' ÷ '+fmtNum(ssp.units)+' pieces</div></div>'+
-        '<div class="pl-card"><div class="lbl">Pop-up cost / piece</div><div class="val">'+fmtHKD(pop.costPerUnit)+'</div><div class="sub">'+fmtHKDcompact(pop.totalCosts)+' ÷ '+fmtNum(pop.units)+' pieces</div></div>'+
+        '<div class="pl-card"><div class="lbl">SSP Shop cost / piece</div><div class="val">'+fmtHKD(ssp.costPerUnit)+'</div><div class="sub">'+fmtHKDcompact(ssp.totalCosts)+' ÷ '+fmtNum(ssp.units)+' pcs</div></div>'+
+        '<div class="pl-card"><div class="lbl">Pop-up cost / piece</div><div class="val">'+fmtHKD(pop.costPerUnit)+'</div><div class="sub">'+fmtHKDcompact(pop.totalCosts)+' ÷ '+fmtNum(pop.units)+' pcs</div></div>'+
         '<div class="pl-card"><div class="lbl">SSP Shop ASP</div><div class="val">'+fmtHKD(ssp.asp)+'</div><div class="sub">avg selling price</div></div>'+
         '<div class="pl-card"><div class="lbl">Pop-up ASP</div><div class="val">'+fmtHKD(pop.asp)+'</div><div class="sub">avg selling price</div></div>'+
       '</div>'+
-      '<div class="info-banner" style="margin-top:6px;">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px;">'+
+        '<div style="border:1px solid var(--border);border-radius:10px;padding:14px;">'+
+          '<div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;">SSP Shop cost breakdown (annual)</div>'+
+          '<div style="font-size:12px;display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--text-muted);">P&L expenses</span><span style="font-weight:600;">'+fmtHKD(ssp.plCosts)+'</span></div>'+
+          '<div style="font-size:12px;display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--text-muted);">Manpower (manual)</span><span style="font-weight:600;">'+fmtHKD(ssp.manpower)+'</span></div>'+
+          '<div style="font-size:12px;display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--text-muted);">Rent (manual)</span><span style="font-weight:600;">'+fmtHKD(ssp.rent)+'</span></div>'+
+          '<div style="font-size:13px;display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--border);margin-top:6px;font-weight:700;"><span>Total</span><span>'+fmtHKD(ssp.totalCosts)+'</span></div>'+
+        '</div>'+
+        '<div style="border:1px solid var(--border);border-radius:10px;padding:14px;">'+
+          '<div style="font-size:12px;font-weight:700;color:var(--forest);margin-bottom:8px;">Pop-up cost breakdown (annual)</div>'+
+          '<div style="font-size:12px;display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--text-muted);">P&L expenses</span><span style="font-weight:600;">'+fmtHKD(pop.plCosts)+'</span></div>'+
+          '<div style="font-size:12px;display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--text-muted);">Manpower (manual)</span><span style="font-weight:600;">'+fmtHKD(pop.manpower)+'</span></div>'+
+          '<div style="font-size:13px;display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--border);margin-top:6px;font-weight:700;"><span>Total</span><span>'+fmtHKD(pop.totalCosts)+'</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="info-banner" style="margin-top:14px;">'+
         '<strong>'+higherName+' costs '+fmtHKD(diff)+' more per piece than '+lowerName+' (+'+pctDiff.toFixed(0)+'%).</strong> '+
         'SSP Shop margin: '+fmtHKD(ssp.asp - ssp.costPerUnit)+'/piece · Pop-up margin: '+fmtHKD(pop.asp - pop.costPerUnit)+'/piece. '+
         'At these rates, <strong>'+(ssp.asp - ssp.costPerUnit > pop.asp - pop.costPerUnit ? 'SSP Shop' : 'Pop-up')+' delivers higher profit per piece sold.</strong>'+
@@ -1005,8 +1057,9 @@ function renderControls(){
   '<div class="control-group"><h4>Sell-through rate</h4><div class="slider-row"><div class="slider-label"><span class="name">% of collected items that are sellable</span><span class="value" id="stValue">'+MODEL.yield.sell_through_pct+'%</span></div><input type="range" min="20" max="80" step="1" value="'+MODEL.yield.sell_through_pct+'" oninput="onSellThroughChange(this.value)"></div></div>'+
   '<div class="control-group"><h4>Avg price adjustment</h4><div class="slider-row"><div class="slider-label"><span class="name">Multiplier applied to selling price</span><span class="value" id="psValue">'+Math.round(PRICE_MULTIPLIER*100)+'%</span></div><input type="range" min="70" max="130" step="5" value="'+Math.round(PRICE_MULTIPLIER*100)+'" oninput="onPriceShiftChange(this.value)"></div></div>'+
   '<div class="control-group"><h4>Kg per piece</h4><div style="margin-bottom:10px;"><input type="number" id="kgInput" class="big-input" min="0.05" max="1" step="0.01" value="'+KG_PER_UNIT.toFixed(2)+'" onchange="onKgPerPieceChange(this.value)"></div><div style="font-size:11px;color:var(--text-muted);line-height:1.4;">Average weight of one item. Default 0.18 kg (180 g). Used to convert units ↔ weight. Saves automatically.</div></div>'+
-  '<div class="control-group" style="background:#fef3c7;border:1px solid #fde68a;"><h4 style="color:#92400e;">Annual manpower cost (HKD)</h4><div style="margin-bottom:10px;"><input type="number" id="manpowerInput" class="big-input" min="0" step="10000" value="'+Math.round(MANPOWER_ANNUAL)+'" onchange="onManpowerChange(this.value)"></div><div style="font-size:11px;color:#92400e;line-height:1.4;">Whole-org manpower cost, <strong>on top</strong> of programme P&L costs. Currently HK$'+Math.round(MANPOWER_ANNUAL/12).toLocaleString()+'/month. Saves automatically.</div></div>'+
-  '<div class="control-group"><h4>Fixed costs (from P&Ls)</h4><div class="toggle-item"><div class="info"><div class="name">Include programme fixed costs</div><div class="detail">'+fmtHKDcompact(c.programFixed)+' / month</div></div><label class="toggle"><input type="checkbox" '+(MODEL.fixed_costs.enabled?'checked':'')+' onchange="onFixedToggle(this.checked)"><span class="slider"></span></label></div><div class="toggle-item" style="margin-top:8px;"><div class="info"><div class="name">Total fixed costs incl. manpower</div><div class="detail" style="font-weight:700;color:var(--forest);">'+fmtHKDcompact(c.monthlyFixed)+' / month</div></div></div></div>'+
+  '<div class="control-group" style="background:#fef3c7;border:1px solid #fde68a;"><h4 style="color:#92400e;">Manpower — annual (HKD)</h4><div style="margin-bottom:10px;"><label class="input-label" style="color:#92400e;">SSP Shop</label><input type="number" id="manpowerSSPInput" class="big-input" min="0" step="10000" value="'+Math.round(MANPOWER_SSP_ANNUAL)+'" onchange="onManpowerSSPChange(this.value)"><div style="font-size:10px;color:#92400e;margin-top:2px;">HK$'+Math.round(MANPOWER_SSP_ANNUAL/12).toLocaleString()+'/month</div></div><div style="margin-bottom:6px;"><label class="input-label" style="color:#92400e;">Pop-up</label><input type="number" id="manpowerPopupInput" class="big-input" min="0" step="10000" value="'+Math.round(MANPOWER_POPUP_ANNUAL)+'" onchange="onManpowerPopupChange(this.value)"><div style="font-size:10px;color:#92400e;margin-top:2px;">HK$'+Math.round(MANPOWER_POPUP_ANNUAL/12).toLocaleString()+'/month</div></div><div style="font-size:11px;color:#92400e;padding-top:8px;border-top:1px dashed #fde68a;margin-top:6px;"><strong>Total: HK$'+Math.round((MANPOWER_SSP_ANNUAL+MANPOWER_POPUP_ANNUAL)/12).toLocaleString()+'/month</strong> on top of P&amp;L costs</div></div>'+
+  '<div class="control-group" style="background:#fef3c7;border:1px solid #fde68a;"><h4 style="color:#92400e;">SSP Shop rent — monthly (HKD)</h4><div style="margin-bottom:10px;"><input type="number" id="sspRentInput" class="big-input" min="0" step="1000" value="'+Math.round(SSP_RENT_MONTHLY)+'" onchange="onSSPRentChange(this.value)"></div><div style="font-size:11px;color:#92400e;line-height:1.4;">SSP Shop rent, <strong>on top</strong> of P&amp;L costs (use if rent is not already in the SSP Shop P&amp;L). Annual: HK$'+Math.round(SSP_RENT_MONTHLY*12).toLocaleString()+'. Saves automatically.</div></div>'+
+  '<div class="control-group"><h4>Fixed costs (from P&Ls)</h4><div class="toggle-item"><div class="info"><div class="name">Include programme fixed costs</div><div class="detail">'+fmtHKDcompact(c.programFixed)+' / month</div></div><label class="toggle"><input type="checkbox" '+(MODEL.fixed_costs.enabled?'checked':'')+' onchange="onFixedToggle(this.checked)"><span class="slider"></span></label></div><div class="toggle-item" style="margin-top:8px;"><div class="info"><div class="name">Total fixed costs incl. manual</div><div class="detail" style="font-weight:700;color:var(--forest);">'+fmtHKDcompact(c.monthlyFixed)+' / month</div></div></div></div>'+
   '<div class="control-group"><h4>Variable costs</h4><div class="toggle-item"><div class="info"><div class="name">Include variable costs</div><div class="detail">'+fmtHKD(c.variableCost)+' / unit</div></div><label class="toggle"><input type="checkbox" '+(MODEL.variable_costs.enabled?'checked':'')+' onchange="onVariableToggle(this.checked)"><span class="slider"></span></label></div></div>';
 }
 function onSellThroughChange(v){MODEL.yield.sell_through_pct=parseFloat(v);setText('stValue',v+'%');renderAll();}
@@ -1018,11 +1071,25 @@ function onKgPerPieceChange(v){
   localStorage.setItem('redress_kg_per_piece',n);
   renderAll();
 }
-function onManpowerChange(v){
+function onManpowerSSPChange(v){
   const n=parseFloat(v);
-  if(isNaN(n)||n<0){alert('Please enter a non-negative number for manpower.');return;}
-  MANPOWER_ANNUAL=n;
-  localStorage.setItem('redress_manpower_annual',n);
+  if(isNaN(n)||n<0){alert('Please enter a non-negative number.');return;}
+  MANPOWER_SSP_ANNUAL=n;
+  localStorage.setItem('redress_manpower_ssp_annual',n);
+  renderAll();
+}
+function onManpowerPopupChange(v){
+  const n=parseFloat(v);
+  if(isNaN(n)||n<0){alert('Please enter a non-negative number.');return;}
+  MANPOWER_POPUP_ANNUAL=n;
+  localStorage.setItem('redress_manpower_popup_annual',n);
+  renderAll();
+}
+function onSSPRentChange(v){
+  const n=parseFloat(v);
+  if(isNaN(n)||n<0){alert('Please enter a non-negative number.');return;}
+  SSP_RENT_MONTHLY=n;
+  localStorage.setItem('redress_ssp_rent_monthly',n);
   renderAll();
 }
 function onFixedToggle(v){MODEL.fixed_costs.enabled=v;renderAll();}
@@ -1069,13 +1136,7 @@ function renderMonthlyChart(c){
       maintainAspectRatio:false,
       plugins:{
         legend:{display:false},
-        title:{
-          display:true,
-          text:'Monthly units to sell (pieces) — '+c.periodLabel,
-          color:'#1b4332',
-          font:{size:13,weight:'600'},
-          padding:{bottom:8}
-        },
+        title:{display:true,text:'Monthly units to sell (pieces) — '+c.periodLabel,color:'#1b4332',font:{size:13,weight:'600'},padding:{bottom:8}},
         tooltip:{
           callbacks:{
             title:(items)=>items[0].label+' 2026 — '+(isPeakByIndex(items[0].dataIndex)?'peak month':'off-peak'),
@@ -1091,14 +1152,8 @@ function renderMonthlyChart(c){
         }
       },
       scales:{
-        y:{
-          beginAtZero:true,
-          title:{display:true,text:'Units to sell (pieces)',color:'#6b7280',font:{size:11,weight:'600'}},
-          ticks:{callback:v=>v.toLocaleString()}
-        },
-        x:{
-          title:{display:true,text:'Month ('+c.periodLabel+')',color:'#6b7280',font:{size:11,weight:'600'}}
-        }
+        y:{beginAtZero:true,title:{display:true,text:'Units to sell (pieces)',color:'#6b7280',font:{size:11,weight:'600'}},ticks:{callback:v=>v.toLocaleString()}},
+        x:{title:{display:true,text:'Month ('+c.periodLabel+')',color:'#6b7280',font:{size:11,weight:'600'}}}
       }
     }
   });
@@ -1130,28 +1185,12 @@ function renderCumulativeChart(c){
       maintainAspectRatio:false,
       plugins:{
         legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
-        title:{
-          display:true,
-          text:'Cumulative HKD toward target — '+c.periodLabel,
-          color:'#1b4332',
-          font:{size:13,weight:'600'},
-          padding:{bottom:8}
-        },
-        tooltip:{
-          callbacks:{
-            label:ctx=>ctx.dataset.label.replace(' (HKD)','')+': '+fmtHKD(ctx.parsed.y)
-          }
-        }
+        title:{display:true,text:'Cumulative HKD toward target — '+c.periodLabel,color:'#1b4332',font:{size:13,weight:'600'},padding:{bottom:8}},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label.replace(' (HKD)','')+': '+fmtHKD(ctx.parsed.y)}}
       },
       scales:{
-        y:{
-          beginAtZero:true,
-          title:{display:true,text:'Cumulative amount (HKD)',color:'#6b7280',font:{size:11,weight:'600'}},
-          ticks:{callback:v=>fmtHKDcompact(v)}
-        },
-        x:{
-          title:{display:true,text:'Month ('+c.periodLabel+')',color:'#6b7280',font:{size:11,weight:'600'}}
-        }
+        y:{beginAtZero:true,title:{display:true,text:'Cumulative amount (HKD)',color:'#6b7280',font:{size:11,weight:'600'}},ticks:{callback:v=>fmtHKDcompact(v)}},
+        x:{title:{display:true,text:'Month ('+c.periodLabel+')',color:'#6b7280',font:{size:11,weight:'600'}}}
       }
     }
   });
@@ -1175,10 +1214,18 @@ function renderFixedCostsEditor(){
     el.appendChild(r);
   });
   
-  const mr=document.createElement('div');
-  mr.className='toggle-item';
-  mr.innerHTML='<div class="info"><div class="name">Central manpower (all staff) <span class="badge badge-manual">MANUAL</span><span class="badge badge-programme">Central</span></div><div class="detail">Edit in Adjust Assumptions · Annual HK$'+Math.round(MANPOWER_ANNUAL).toLocaleString()+'</div></div><div class="amount">'+fmtHKD(getManpowerMonthly())+'</div><span style="font-size:20px;">🔒</span>';
-  el.appendChild(mr);
+  // Manual rows — SSP manpower, Pop-up manpower, SSP rent
+  const mRows=[
+    {name:'SSP Shop manpower', badge:'SSP Shop', amount:MANPOWER_SSP_ANNUAL/12, detail:'Annual HK$'+Math.round(MANPOWER_SSP_ANNUAL).toLocaleString()+' · manual input'},
+    {name:'Pop-up manpower', badge:'Pop-up', amount:MANPOWER_POPUP_ANNUAL/12, detail:'Annual HK$'+Math.round(MANPOWER_POPUP_ANNUAL).toLocaleString()+' · manual input'},
+    {name:'SSP Shop rent', badge:'SSP Shop', amount:SSP_RENT_MONTHLY, detail:'Annual HK$'+Math.round(SSP_RENT_MONTHLY*12).toLocaleString()+' · manual input'}
+  ];
+  mRows.forEach(mr=>{
+    const r=document.createElement('div');
+    r.className='toggle-item';
+    r.innerHTML='<div class="info"><div class="name">'+mr.name+' <span class="badge badge-manual">MANUAL</span><span class="badge badge-programme">'+mr.badge+'</span></div><div class="detail">'+mr.detail+'</div></div><div class="amount">'+fmtHKD(mr.amount)+'</div><span style="font-size:20px;">🔒</span>';
+    el.appendChild(r);
+  });
   
   const total=getMonthlyFixed();
   setText('fixedTotal',fmtHKD(total));
