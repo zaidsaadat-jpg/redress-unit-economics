@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redress — Unit Economics Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+:root {
+  --forest: #1b4332;
+  --sage: #40916c;
+  --sage-light: #52b788;
+  --sand: #d4a373;
+  --cream: #fefae0;
+  --bg: #faf9f6;
+  --text: #1a1a1a;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --danger: #c62828;
+  --success: #2d6a4f;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+.header { background: var(--forest); color: #fff; padding: 20px 40px; }
+.header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-logo { width: 46px; height: 46px; border-radius: 10px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.brand-logo svg { width: 28px; height: 28px; }
+.brand-text h1 { font-size: 20px; letter-spacing: 2px; font-weight: 800; }
+.brand-text .tagline { font-size: 11px; color: rgba(255,255,255,0.65); letter-spacing: 0.5px; margin-top: 2px; }
+.header-meta { text-align: right; font-size: 12px; color: rgba(255,255,255,0.7); }
+
+.tabs { display: flex; gap: 4px; margin-top: 18px; flex-wrap: wrap; }
+.tab { padding: 10px 24px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: none; cursor: pointer; border-radius: 8px 8px 0 0; font-size: 14px; font-weight: 500; transition: all 0.15s; }
+.tab:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.tab.active { background: var(--bg); color: var(--forest); font-weight: 600; }
+
+.container { max-width: 1600px; margin: 0 auto; padding: 25px 20px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.hero { background: #fff; border-radius: 14px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); border-left: 5px solid var(--sage); }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: center; }
+@media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } }
+.hero-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; }
+.hero-number { font-size: 52px; font-weight: 800; color: var(--forest); line-height: 1; }
+.hero-unit { font-size: 18px; color: var(--text-muted); font-weight: 500; margin-left: 8px; }
+.hero-sub { font-size: 14px; color: var(--text-muted); margin-top: 10px; line-height: 1.5; }
+
+.hero-target { background: var(--cream); border-radius: 10px; padding: 20px; }
+.hero-target label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: block; margin-bottom: 8px; }
+.hero-target input { font-size: 28px; font-weight: 700; border: 2px solid var(--border); border-radius: 8px; padding: 8px 14px; width: 100%; background: #fff; color: var(--forest); font-family: inherit; }
+.hero-target input:focus { outline: none; border-color: var(--sage); }
+.hero-target .hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+.metric-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border-left: 4px solid var(--sage); }
+.metric-card.warn { border-left-color: var(--sand); }
+.metric-card.highlight { background: var(--forest); color: #fff; border-left-color: var(--sand); }
+.metric-card .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+.metric-card.highlight .lbl { color: rgba(255,255,255,0.7); }
+.metric-card .val { font-size: 26px; font-weight: 700; color: var(--forest); }
+.metric-card.highlight .val { color: #fff; }
+.metric-card .sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.metric-card.highlight .sub { color: rgba(255,255,255,0.6); }
+
+.section { background: #fff; border-radius: 14px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.section h3 { font-size: 17px; color: var(--forest); margin-bottom: 6px; }
+.section .section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+.chart-wrap { position: relative; }
+.chart-wrap.tall { height: 400px; }
+.chart-wrap.medium { height: 320px; }
+
+.controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.control-group { padding: 16px; background: #f8f9fa; border-radius: 10px; }
+.control-group h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 14px; }
+
+.slider-row { margin-bottom: 14px; }
+.slider-row:last-child { margin-bottom: 0; }
+.slider-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.slider-label .name { color: var(--text); }
+.slider-label .value { font-weight: 700; color: var(--forest); font-family: ui-monospace, monospace; }
+input[type="range"] { width: 100%; -webkit-appearance: none; height: 6px; border-radius: 3px; background: #d1d5db; outline: none; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--sage); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: var(--sage); cursor: pointer; border: 3px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+
+.toggle-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.toggle-item:last-child { border-bottom: none; }
+.toggle-item .info { flex: 1; }
+.toggle-item .info .name { font-size: 13px; color: var(--text); }
+.toggle-item .info .detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.toggle-item .amount { font-weight: 600; font-family: ui-monospace, monospace; font-size: 13px; margin-right: 12px; color: var(--forest); }
+.toggle-item.disabled .info .name,
+.toggle-item.disabled .amount { color: #9ca3af; text-decoration: line-through; }
+
+.toggle { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #cbd5e1; border-radius: 24px; transition: 0.2s; }
+.toggle .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle input:checked + .slider { background: var(--sage); }
+.toggle input:checked + .slider:before { transform: translateX(18px); }
+
+.tier-row { display: grid; grid-template-columns: 1fr 90px 80px 60px; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.tier-row:last-child { border-bottom: none; }
+.tier-row .name { font-size: 13px; }
+.tier-row input { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: ui-monospace, monospace; width: 100%; }
+.tier-row input:focus { outline: none; border-color: var(--sage); }
+.tier-row .weight-pct { font-size: 13px; font-weight: 600; color: var(--sage); text-align: right; }
+
+.scenario-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+.scenario-card { background: #fff; border-radius: 12px; padding: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 4px solid var(--sage); }
+.scenario-card.best { border-top-color: var(--success); }
+.scenario-card.base { border-top-color: var(--sage); }
+.scenario-card.worst { border-top-color: var(--danger); }
+.scenario-card h4 { font-size: 15px; margin-bottom: 4px; }
+.scenario-card .note { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4; }
+.scenario-card .stat-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+.scenario-card .stat-row .lbl { color: var(--text-muted); }
+.scenario-card .stat-row .val { font-weight: 700; font-family: ui-monospace, monospace; }
+.scenario-card .stat-row.big { border-top: 2px solid var(--border); margin-top: 8px; padding-top: 12px; font-size: 15px; }
+.scenario-card .stat-row.big .val { color: var(--forest); }
+
+.waterfall-wrap { height: 420px; position: relative; }
+
+.info-banner { background: var(--cream); border-left: 4px solid var(--sand); padding: 14px 18px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: var(--text); margin-bottom: 20px; }
+.info-banner strong { color: var(--forest); }
+
+.footer { text-align: center; color: var(--text-muted); font-size: 12px; padding: 30px; }
+
+.loading { text-align: center; padding: 60px; color: var(--text-muted); }
+.spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--sage); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-8v4h3l-4 8z" fill="#d4a373"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>REDRESS</h1>
+        <div class="tagline">Working to cut waste out of fashion</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div>Unit Economics Dashboard</div>
+      <div id="metaDate">Loading…</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('target', this)">🎯 Target Volume</button>
+    <button class="tab" onclick="showTab('unit', this)">📊 Unit Economics</button>
+    <button class="tab" onclick="showTab('scenarios', this)">📈 Scenarios & Sensitivity</button>
+  </div>
+</div>
+
+<div class="container">
+  <div id="loadingScreen" class="loading">
+    <div class="spinner"></div>
+    <div>Loading model…</div>
+  </div>
+
+  <!-- TAB 1: TARGET VOLUME -->
+  <div class="tab-panel active" id="tab-target" style="display:none;">
+    <div class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="hero-label">To hit your target, you need to sell</div>
+          <div><span class="hero-number" id="heroUnits">—</span><span class="hero-unit">units / month</span></div>
+          <div class="hero-sub" id="heroSub">Calculating…</div>
+        </div>
+        <div class="hero-target">
+          <label>Annual surplus target (HKD)</label>
+          <input type="number" id="targetInput" value="200000" step="10000" onchange="onTargetChange()">
+          <div class="hint">Drag sliders below to explore. Numbers update live.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="lbl">Avg selling price</div>
+        <div class="val" id="mAvgPrice">—</div>
+        <div class="sub" id="mAvgPriceSub">Weighted across tiers</div>
+      </div>
+      <div class="metric-card">
+        <div class="lbl">Contribution / unit</div>
+        <div class="val" id="mContribution">—</div>
+        <div class="sub">Price minus variable costs</div>
+      </div>
+      <div class="metric-card warn">
+        <div class="lbl">Break-even units / month</div>
+        <div class="val" id="mBreakEven">—</div>
+        <div class="sub">Just cover fixed costs</div>
+      </div>
+      <div class="metric-card highlight">
+        <div class="lbl">Units to collect / month</div>
+        <div class="val" id="mCollect">—</div>
+        <div class="sub" id="mCollectSub">At 45% sell-through</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Monthly volume required (with seasonality)</h3>
+      <div class="section-sub">Pop-up shops in June and November mean higher volume in those months.</div>
+      <div class="chart-wrap medium"><canvas id="monthlyChart"></canvas></div>
+    </div>
+
+    <div class="section">
+      <h3>Revenue vs Costs vs Target</h3>
+      <div class="section-sub">Cumulative contribution toward your target across the year.</div>
+      <div class="chart-wrap medium"><canvas id="cumulativeChart"></canvas></div>
+    </div>
+
+    <div class="section">
+      <h3>Adjust assumptions</h3>
+      <div class="section-sub">Move any slider to see the impact immediately.</div>
+      <div class="controls-grid" id="controlsGrid"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: UNIT ECONOMICS -->
+  <div class="tab-panel" id="tab-unit" style="display:none;">
+    <div class="info-banner">
+      <strong>How to read this:</strong> Each unit you sell generates revenue, which pays for variable costs first (collection, sorting, packaging, payment processing). What's left is the <em>contribution</em>, which then pays for fixed costs. Whatever remains after fixed costs is your surplus toward the target.
+    </div>
+
+    <div class="section">
+      <h3>Per-unit economics waterfall</h3>
+      <div class="section-sub">Where each HKD of selling price goes.</div>
+      <div class="waterfall-wrap" id="waterfallChart"></div>
+    </div>
+
+    <div class="section">
+      <h3>Price tiers</h3>
+      <div class="section-sub">Edit prices and weights. Weighted average price drives the model.</div>
+      <div id="tierEditor"></div>
+      <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">
+        Weighted average: <strong id="weightedAvg">—</strong> · Weights sum: <strong id="weightSum">—</strong>
+      </div>
+      <div style="margin-top:12px;">
+        <button class="tab" style="background:var(--sage); color:#fff; padding:8px 18px; border-radius:6px; font-size:12px; cursor:pointer; border:none;" onclick="applyNormalDistribution()">↻ Apply Normal Distribution</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Fixed costs (monthly)</h3>
+      <div class="section-sub">Toggle each line on or off to model different scenarios.</div>
+      <div id="fixedCostsEditor"></div>
+      <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">
+        Total monthly fixed: <strong id="fixedTotal">—</strong> · Annual: <strong id="fixedAnnual">—</strong>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Variable costs (per unit)</h3>
+      <div class="section-sub">Toggle each line on or off. Percentage-based costs scale with price.</div>
+      <div id="variableCostsEditor"></div>
+      <div style="margin-top:14px; padding:12px 16px; background:var(--cream); border-radius:8px; font-size:13px;">
+        Total variable per unit: <strong id="variableTotal">—</strong> · Contribution per unit: <strong id="contributionTotal">—</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: SCENARIOS -->
+  <div class="tab-panel" id="tab-scenarios" style="display:none;">
+    <div class="section">
+      <h3>Scenario comparison</h3>
+      <div class="section-sub">Best, base, and worst case — what changes, and what it means for the target.</div>
+      <div class="scenario-grid" id="scenarioGrid"></div>
+    </div>
+
+    <div class="section">
+      <h3>Sensitivity: Avg price × Monthly volume</h3>
+      <div class="section-sub">Each cell shows the annual surplus (HKD). The white line is the break-even boundary. Green = surplus above target.</div>
+      <div class="chart-wrap tall" id="heatmap1"></div>
+    </div>
+
+    <div class="section">
+      <h3>Sensitivity: Collection cost × Sell-through rate</h3>
+      <div class="section-sub">How sensitive is the target to collection efficiency and yield quality?</div>
+      <div class="chart-wrap tall" id="heatmap2"></div>
+    </div>
+
+    <div class="section">
+      <h3>Seasonality profile</h3>
+      <div class="section-sub">Monthly volume weights across the year. Toggle seasonality on/off to see the difference.</div>
+      <div class="controls-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="control-group">
+          <h4>Seasonality</h4>
+          <div class="toggle-item">
+            <div class="info">
+              <div class="name">Enable seasonality</div>
+              <div class="detail">Higher volume in June & November</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="seasonalityToggle" checked onchange="onSeasonalityChange()">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="control-group">
+          <h4>Channel mix</h4>
+          <div id="channelMix"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Redress Unit Economics Dashboard · Model assumptions are editable · Not financial advice
+</div>
+
+<script>
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+let MODEL = null;
+let originalModel = null;
+let monthlyChart = null, cumulativeChart = null, scenarioChart = null;
+
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtHKD = n => 'HK$' + Math.round(n).toLocaleString();
+const fmtHKDcompact = n => {
+  const abs = Math.abs(n);
+  if (abs >= 1e6) return 'HK$' + (n/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return 'HK$' + (n/1e3).toFixed(0) + 'k';
+  return 'HK$' + Math.round(n);
+};
+
+// ============================================================
+// LOAD MODEL
+// ============================================================
+async function loadModel() {
+  try {
+    const r = await fetch('revenue_model.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    MODEL = await r.json();
+    originalModel = JSON.parse(JSON.stringify(MODEL));
+    document.getElementById('metaDate').textContent = 'Model v' + MODEL.version + ' · ' + MODEL.last_updated;
+    document.getElementById('targetInput').value = MODEL.target.surplus_hkd;
+    renderAll();
+  } catch (err) {
+    document.getElementById('loadingScreen').innerHTML = '<div style="color:#c62828;">Failed to load revenue_model.json: ' + err.message + '</div>';
+    console.error(err);
+  }
+}
+
+// ============================================================
+// CALCULATIONS
+// ============================================================
+function getWeightedAvgPrice() {
+  const tiers = MODEL.pricing.tiers.filter(t => t.enabled);
+  if (!tiers.length) return 0;
+  const totalWeight = tiers.reduce((s, t) => s + t.weight, 0);
+  if (!totalWeight) return 0;
+  return tiers.reduce((s, t) => s + t.price * t.weight, 0) / totalWeight;
+}
+
+function getMonthlyFixed() {
+  if (!MODEL.fixed_costs.enabled) return 0;
+  return MODEL.fixed_costs.items.filter(i => i.enabled).reduce((s, i) => s + i.monthly_hkd, 0);
+}
+
+function getVariableCostPerUnit(avgPrice) {
+  if (!MODEL.variable_costs.enabled) return 0;
+  let total = 0;
+  MODEL.variable_costs.items.filter(i => i.enabled).forEach(i => {
+    if (i.per_unit_hkd) total += i.per_unit_hkd;
+    if (i.per_unit_pct) total += avgPrice * (i.per_unit_pct / 100);
+  });
+  return total;
+}
+
+function calculate() {
+  const avgPrice = getWeightedAvgPrice();
+  const variableCost = getVariableCostPerUnit(avgPrice);
+  const contribution = avgPrice - variableCost;
+  const monthlyFixed = getMonthlyFixed();
+  const target = MODEL.target.surplus_hkd;
+  const periodMonths = MODEL.target.period_months || 12;
+
+  // Units per month to hit target
+  const annualContributionRequired = monthlyFixed * periodMonths + target;
+  const annualUnits = contribution > 0 ? annualContributionRequired / contribution : 0;
+  const monthlyUnitsAvg = annualUnits / periodMonths;
+
+  // Break-even units
+  const breakEvenAnnual = contribution > 0 ? (monthlyFixed * periodMonths) / contribution : 0;
+  const breakEvenMonthly = breakEvenAnnual / periodMonths;
+
+  // Seasonality
+  let monthlyVolumes = [];
+  if (MODEL.seasonality.enabled) {
+    const weights = MODEL.seasonality.monthly_weights;
+    const totalWeight = weights.reduce((s, w) => s + w, 0);
+    monthlyVolumes = weights.map(w => (annualUnits * w) / totalWeight);
+  } else {
+    monthlyVolumes = Array(12).fill(monthlyUnitsAvg);
+  }
+
+  // Units to collect
+  const sellThrough = MODEL.yield.sell_through_pct / 100;
+  const monthlyCollectAvg = sellThrough > 0 ? monthlyUnitsAvg / sellThrough : 0;
+
+  return {
+    avgPrice, variableCost, contribution, monthlyFixed,
+    annualUnits, monthlyUnitsAvg, monthlyVolumes,
+    breakEvenAnnual, breakEvenMonthly,
+    monthlyCollectAvg, sellThrough,
+    target, periodMonths,
+    annualContributionRequired
+  };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderAll() {
+  const c = calculate();
+  renderHero(c);
+  renderMetrics(c);
+  renderControls();
+  renderMonthlyChart(c);
+  renderCumulativeChart(c);
+  renderTierEditor();
+  renderFixedCostsEditor();
+  renderVariableCostsEditor();
+  renderWaterfall(c);
+  renderScenarios();
+  renderHeatmaps();
+  renderChannelMix();
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('tab-target').style.display = 'block';
+}
+
+function renderHero(c) {
+  document.getElementById('heroUnits').textContent = Math.ceil(c.monthlyUnitsAvg).toLocaleString();
+  document.getElementById('heroSub').innerHTML = 
+    `That's <strong>${Math.ceil(c.annualUnits).toLocaleString()} units per year</strong>, ` +
+    `or about <strong>${Math.ceil(c.monthlyUnitsAvg/30)} units per day</strong> across pop-up and online. ` +
+    `You'll need to collect roughly <strong>${Math.ceil(c.monthlyCollectAvg).toLocaleString()} items per month</strong> ` +
+    `at ${MODEL.yield.sell_through_pct}% sell-through.`;
+}
+
+function renderMetrics(c) {
+  document.getElementById('mAvgPrice').textContent = fmtHKD(c.avgPrice);
+  document.getElementById('mAvgPriceSub').textContent = 'Weighted across ' + MODEL.pricing.tiers.filter(t=>t.enabled).length + ' tiers';
+  document.getElementById('mContribution').textContent = fmtHKD(c.contribution);
+  document.getElementById('mBreakEven').textContent = Math.ceil(c.breakEvenMonthly).toLocaleString();
+  document.getElementById('mCollect').textContent = Math.ceil(c.monthlyCollectAvg).toLocaleString();
+  document.getElementById('mCollectSub').textContent = 'At ' + MODEL.yield.sell_through_pct + '% sell-through';
+}
+
+function renderControls() {
+  const grid = document.getElementById('controlsGrid');
+  grid.innerHTML = '';
+  
+  const controls = [
+    { id: 'sellThrough', label: 'Sell-through rate', min: 20, max: 80, value: MODEL.yield.sell_through_pct, suffix: '%', key: 'yield' },
+    { id: 'avgPriceShift', label: 'Avg price adjustment', min: 70, max: 130, value: 100, suffix: '%', key: 'price' }
+  ];
+
+  const c = calculate();
+
+  // Sell-through slider
+  const g1 = document.createElement('div');
+  g1.className = 'control-group';
+  g1.innerHTML = `
+    <h4>Sell-through rate</h4>
+    <div class="slider-row">
+      <div class="slider-label">
+        <span class="name">% of collected items that are sellable</span>
+        <span class="value" id="stValue">${MODEL.yield.sell_through_pct}%</span>
+      </div>
+      <input type="range" min="20" max="80" step="1" value="${MODEL.yield.sell_through_pct}" 
+             oninput="onSellThroughChange(this.value)">
+    </div>
+  `;
+  grid.appendChild(g1);
+
+  // Price shift slider
+  const g2 = document.createElement('div');
+  g2.className = 'control-group';
+  g2.innerHTML = `
+    <h4>Price adjustment</h4>
+    <div class="slider-row">
+      <div class="slider-label">
+        <span class="name">Shift all tier prices by</span>
+        <span class="value" id="psValue">100%</span>
+      </div>
+      <input type="range" min="70" max="130" step="5" value="100" 
+             oninput="onPriceShiftChange(this.value)">
+    </div>
+  `;
+  grid.appendChild(g2);
+
+  // Fixed costs toggle
+  const g3 = document.createElement('div');
+  g3.className = 'control-group';
+  g3.innerHTML = `
+    <h4>Fixed costs</h4>
+    <div class="toggle-item">
+      <div class="info">
+        <div class="name">Include fixed costs</div>
+        <div class="detail">${fmtHKDcompact(c.monthlyFixed)} / month</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${MODEL.fixed_costs.enabled ? 'checked' : ''} onchange="onFixedToggle(this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+  `;
+  grid.appendChild(g3);
+
+  // Variable costs toggle
+  const g4 = document.createElement('div');
+  g4.className = 'control-group';
+  g4.innerHTML = `
+    <h4>Variable costs</h4>
+    <div class="toggle-item">
+      <div class="info">
+        <div class="name">Include variable costs</div>
+        <div class="detail">${fmtHKD(c.variableCost)} / unit</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${MODEL.variable_costs.enabled ? 'checked' : ''} onchange="onVariableToggle(this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+  `;
+  grid.appendChild(g4);
+}
+
+function onSellThroughChange(val) {
+  MODEL.yield.sell_through_pct = parseFloat(val);
+  document.getElementById('stValue').textContent = val + '%';
+  renderAll();
+}
+function onPriceShiftChange(val) {
+  // Apply relative shift to original prices
+  const multiplier = parseFloat(val) / 100;
+  MODEL.pricing.tiers.forEach((t, i) => {
+    t.price = Math.round(originalModel.pricing.tiers[i].price * multiplier);
+  });
+  document.getElementById('psValue').textContent = val + '%';
+  renderAll();
+}
+function onFixedToggle(val) {
+  MODEL.fixed_costs.enabled = val;
+  renderAll();
+}
+function onVariableToggle(val) {
+  MODEL.variable_costs.enabled = val;
+  renderAll();
+}
+function onTargetChange() {
+  MODEL.target.surplus_hkd = parseFloat(document.getElementById('targetInput').value) || 0;
+  renderAll();
+}
+function onSeasonalityChange() {
+  MODEL.seasonality.enabled = document.getElementById('seasonalityToggle').checked;
+  renderAll();
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+function renderMonthlyChart(c) {
+  const ctx = document.getElementById('monthlyChart');
+  if (!ctx) return;
+  if (monthlyChart) monthlyChart.destroy();
+  monthlyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: MONTH_NAMES,
+      datasets: [{
+        label: 'Units required',
+        data: c.monthlyVolumes.map(v => Math.ceil(v)),
+        backgroundColor: c.monthlyVolumes.map((v, i) => 
+          MODEL.seasonality.enabled && MODEL.seasonality.peak_months.includes(i+1) 
+            ? '#d4a373' : '#40916c'),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => c.parsed.y.toLocaleString() + ' units' } }
+      },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Units' } }
+      }
+    }
+  });
+}
+
+function renderCumulativeChart(c) {
+  const ctx = document.getElementById('cumulativeChart');
+  if (!ctx) return;
+  if (cumulativeChart) cumulativeChart.destroy();
+  
+  let cum = 0;
+  const cumulative = c.monthlyVolumes.map(v => {
+    cum += v * c.contribution;
+    return cum;
+  });
+  const costsCumulative = MODEL.fixed_costs.enabled
+    ? MONTH_NAMES.map((_, i) => c.monthlyFixed * (i + 1))
+    : MONTH_NAMES.map(() => 0);
+  const targetLine = MONTH_NAMES.map(() => c.target);
+
+  cumulativeChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: MONTH_NAMES,
+      datasets: [
+        { label: 'Cumulative contribution', data: cumulative, borderColor: '#40916c', backgroundColor: 'rgba(64,145,108,0.1)', borderWidth: 2.5, tension: 0.3, fill: true, pointRadius: 3 },
+        { label: 'Cumulative fixed costs', data: costsCumulative, borderColor: '#c62828', borderWidth: 1.5, borderDash: [6,4], tension: 0.3, pointRadius: 0 },
+        { label: 'Target', data: targetLine, borderColor: '#d4a373', borderWidth: 2, borderDash: [4,4], tension: 0, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtHKD(ctx.parsed.y) } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => fmtHKDcompact(v) } }
+      }
+    }
+  });
+}
+
+// ============================================================
+// TIER EDITOR
+// ============================================================
+function renderTierEditor() {
+  const el = document.getElementById('tierEditor');
+  el.innerHTML = '';
+  const weightSum = MODEL.pricing.tiers.reduce((s,t) => s + (t.enabled ? t.weight : 0), 0);
+  
+  MODEL.pricing.tiers.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'tier-row';
+    if (!t.enabled) row.style.opacity = '0.5';
+    row.innerHTML = `
+      <div class="name">${t.name}</div>
+      <input type="number" value="${t.price}" onchange="updateTierPrice(${i}, this.value)" placeholder="Price">
+      <input type="number" value="${t.weight}" onchange="updateTierWeight(${i}, this.value)" placeholder="Weight">
+      <div class="weight-pct">${weightSum > 0 ? ((t.weight / weightSum) * 100).toFixed(0) + '%' : '—'}</div>
+    `;
+    el.appendChild(row);
+  });
+  
+  document.getElementById('weightedAvg').textContent = fmtHKD(getWeightedAvgPrice());
+  document.getElementById('weightSum').textContent = weightSum;
+}
+
+function updateTierPrice(i, val) {
+  MODEL.pricing.tiers[i].price = parseFloat(val) || 0;
+  renderAll();
+}
+function updateTierWeight(i, val) {
+  MODEL.pricing.tiers[i].weight = parseFloat(val) || 0;
+  renderAll();
+}
+
+function applyNormalDistribution() {
+  // Compute weights from a normal PDF centered on the second tier
+  const tiers = MODEL.pricing.tiers;
+  const mean = 250;
+  const std = 120;
+  tiers.forEach(t => {
+    const x = t.price;
+    const pdf = Math.exp(-Math.pow(x - mean, 2) / (2 * std * std));
+    t.weight = Math.round(pdf * 100);
+  });
+  renderAll();
+}
+
+// ============================================================
+// FIXED COSTS EDITOR
+// ============================================================
+function renderFixedCostsEditor() {
+  const el = document.getElementById('fixedCostsEditor');
+  el.innerHTML = '';
+  
+  MODEL.fixed_costs.items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'toggle-item' + (item.enabled ? '' : ' disabled');
+    row.innerHTML = `
+      <div class="info">
+        <div class="name">${item.name}</div>
+        <div class="detail">${item.category}</div>
+      </div>
+      <div class="amount">${fmtHKD(item.monthly_hkd)}</div>
+      <label class="toggle">
+        <input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="toggleFixedCost(${i}, this.checked)">
+        <span class="slider"></span>
+      </label>
+    `;
+    el.appendChild(row);
+  });
+  
+  const total = getMonthlyFixed();
+  document.getElementById('fixedTotal').textContent = fmtHKD(total);
+  document.getElementById('fixedAnnual').textContent = fmtHKD(total * 12);
+}
+function toggleFixedCost(i, val) {
+  MODEL.fixed_costs.items[i].enabled = val;
+  renderAll();
+}
+
+// ============================================================
+// VARIABLE COSTS EDITOR
+// ============================================================
+function renderVariableCostsEditor() {
+  const el = document.getElementById('variableCostsEditor');
+  el.innerHTML = '';
+  const avgPrice = getWeightedAvgPrice();
+  
+  MODEL.variable_costs.items.forEach((item, i) => {
+    const row = document.createElement('div');
+    row.className = 'toggle-item' + (item.enabled ? '' : ' disabled');
+    const display = item.per_unit_hkd ? fmtHKD(item.per_unit_hkd) : (item.per_unit_pct + '% of price');
+    row.innerHTML = `
+      <div class="info">
+        <div class="name">${item.name}</div>
+        <div class="detail">${item.category}</div>
+      </div>
+      <div class="amount">${display}</div>
+      <label class="toggle">
+        <input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="toggleVariableCost(${i}, this.checked)">
+        <span class="slider"></span>
+      </label>
+    `;
+    el.appendChild(row);
+  });
+  
+  const total = getVariableCostPerUnit(avgPrice);
+  document.getElementById('variableTotal').textContent = fmtHKD(total);
+  document.getElementById('contributionTotal').textContent = fmtHKD(avgPrice - total);
+}
+function toggleVariableCost(i, val) {
+  MODEL.variable_costs.items[i].enabled = val;
+  renderAll();
+}
+
+// ============================================================
+// WATERFALL
+// ============================================================
+function renderWaterfall(c) {
+  const el = document.getElementById('waterfallChart');
+  if (!el) return;
+  
+  const steps = [
+    { label: 'Avg price', value: c.avgPrice, type: 'base' },
+    { label: 'Variable costs', value: -c.variableCost, type: 'add' },
+    { label: 'Contribution', value: c.contribution, type: 'subtotal' },
+    { label: 'Fixed costs / unit', value: -(c.monthlyFixed / Math.max(c.monthlyUnitsAvg, 1)), type: 'add' },
+    { label: 'Surplus / unit', value: c.contribution - (c.monthlyFixed / Math.max(c.monthlyUnitsAvg, 1)), type: 'total' }
+  ];
+  
+  const labels = steps.map(s => s.label);
+  const values = steps.map(s => s.value);
+  const colors = steps.map(s => 
+    s.type === 'base' ? '#1b4332' : 
+    s.type === 'subtotal' ? '#40916c' : 
+    s.type === 'total' ? '#d4a373' : 
+    s.value < 0 ? '#c62828' : '#52b788');
+  
+  const trace = {
+    type: 'waterfall', orientation: 'v',
+    x: labels, y: values,
+    measure: steps.map(s => (s.type === 'base' || s.type === 'subtotal' || s.type === 'total') ? 'absolute' : 'relative'),
+    text: values.map(v => fmtHKD(v)),
+    textposition: 'outside',
+    marker: { color: colors },
+    connector: { line: { color: '#ccc' } }
+  };
+  
+  Plotly.react('waterfallChart', [trace], {
+    margin: { l: 50, r: 20, t: 20, b: 60 },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    font: { size: 11 },
+    yaxis: { title: 'HKD per unit', tickprefix: 'HK$', tickformat: ',.0f' },
+    xaxis: { tickangle: -15 }
+  }, { responsive: true, displayModeBar: false });
+}
+
+// ============================================================
+// SCENARIOS
+// ============================================================
+function renderScenarios() {
+  const grid = document.getElementById('scenarioGrid');
+  grid.innerHTML = '';
+  const baseC = calculate();
+  
+  ['best', 'base', 'worst'].forEach(key => {
+    const s = MODEL.scenarios[key];
+    const price = baseC.avgPrice * s.price_multiplier;
+    const variableCost = baseC.variableCost * s.cost_multiplier;
+    const contribution = price - variableCost;
+    const fixed = baseC.monthlyFixed * s.cost_multiplier;
+    const target = baseC.target;
+    const annualContributionRequired = fixed * 12 + target;
+    const units = contribution > 0 ? annualContributionRequired / contribution : 0;
+    const monthlyUnits = units / 12;
+    
+    const card = document.createElement('div');
+    card.className = 'scenario-card ' + key;
+    card.innerHTML = `
+      <h4>${s.label}</h4>
+      <div class="note">${s.note}</div>
+      <div class="stat-row"><span class="lbl">Avg price</span><span class="val">${fmtHKD(price)}</span></div>
+      <div class="stat-row"><span class="lbl">Contribution / unit</span><span class="val">${fmtHKD(contribution)}</span></div>
+      <div class="stat-row"><span class="lbl">Monthly fixed</span><span class="val">${fmtHKDcompact(fixed)}</span></div>
+      <div class="stat-row big"><span>Units / month needed</span><span>${Math.ceil(monthlyUnits).toLocaleString()}</span></div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// HEATMAPS
+// ============================================================
+function renderHeatmaps() {
+  const baseC = calculate();
+  
+  // Heatmap 1: price x volume -> annual surplus
+  const priceRange = [];
+  const volRange = [];
+  const s = MODEL.sensitivity;
+  for (let i = 0; i < s.price_steps; i++) {
+    priceRange.push(s.price_min + (s.price_max - s.price_min) * i / (s.price_steps - 1));
+  }
+  for (let i = 0; i < s.volume_steps; i++) {
+    volRange.push(s.volume_min + (s.volume_max - s.volume_min) * i / (s.volume_steps - 1));
+  }
+  
+  const z1 = volRange.map(v => 
+    priceRange.map(p => {
+      const varCost = getVariableCostPerUnit(p);
+      const contribution = p - varCost;
+      const annualContrib = contribution * v * 12;
+      const annualFixed = baseC.monthlyFixed * 12;
+      return Math.round(annualContrib - annualFixed);
+    })
+  );
+  
+  Plotly.react('heatmap1', [{
+    type: 'heatmap',
+    x: priceRange.map(p => Math.round(p)),
+    y: volRange.map(v => Math.round(v)),
+    z: z1,
+    colorscale: [
+      [0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']
+    ],
+    hovertemplate: 'Avg price: HK$%{x}<br>Monthly units: %{y}<br>Annual surplus: HK$%{z:,}<extra></extra>',
+    colorbar: { title: 'Annual surplus', tickprefix: 'HK$', tickformat: ',.0s' }
+  }], {
+    margin: { l: 60, r: 20, t: 20, b: 50 },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    font: { size: 11 },
+    xaxis: { title: 'Average selling price (HKD)' },
+    yaxis: { title: 'Monthly units sold' }
+  }, { responsive: true, displayModeBar: false });
+  
+  // Heatmap 2: collection cost x sell-through -> annual surplus
+  const collRange = [];
+  for (let i = 0; i < s.collection_cost_steps; i++) {
+    collRange.push(s.collection_cost_min + (s.collection_cost_max - s.collection_cost_min) * i / (s.collection_cost_steps - 1));
+  }
+  const yieldRange = [];
+  for (let i = 0; i < s.yield_steps; i++) {
+    yieldRange.push(s.yield_min + (s.yield_max - s.yield_min) * i / (s.yield_steps - 1));
+  }
+  
+  // For each combo, compute the units needed and whether target is achievable
+  const target = MODEL.target.surplus_hkd;
+  const fixedAnnual = baseC.monthlyFixed * 12;
+  
+  const z2 = yieldRange.map(y => 
+    collRange.map(c => {
+      const varCost = getVariableCostPerUnit(baseC.avgPrice) + (c - 14);
+      const contribution = baseC.avgPrice - varCost;
+      const annualContribRequired = fixedAnnual + target;
+      const units = contribution > 0 ? annualContribRequired / contribution : 0;
+      const collectNeeded = units / (y / 100);
+      // Return a "sustainability" score: can we physically achieve this?
+      // Higher collection cost + lower yield = harder to hit target
+      return Math.round(units * contribution - annualContribRequired);
+    })
+  );
+  
+  Plotly.react('heatmap2', [{
+    type: 'heatmap',
+    x: collRange.map(c => c.toFixed(0)),
+    y: yieldRange.map(y => y.toFixed(0) + '%'),
+    z: z2,
+    colorscale: [
+      [0, '#ffebee'], [0.4, '#fff3e0'], [0.6, '#e8f5e9'], [1, '#1b4332']
+    ],
+    hovertemplate: 'Collection cost: HK$%{x}/unit<br>Sell-through: %{y}<br>Surplus headroom: HK$%{z:,}<extra></extra>',
+    colorbar: { title: 'Headroom', tickprefix: 'HK$', tickformat: ',.0s' }
+  }], {
+    margin: { l: 60, r: 20, t: 20, b: 50 },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    font: { size: 11 },
+    xaxis: { title: 'Collection cost per unit (HKD)' },
+    yaxis: { title: 'Sell-through rate (%)' }
+  }, { responsive: true, displayModeBar: false });
+}
+
+// ============================================================
+// CHANNEL MIX
+// ============================================================
+function renderChannelMix() {
+  const el = document.getElementById('channelMix');
+  el.innerHTML = '';
+  MODEL.channels.forEach((ch, i) => {
+    const row = document.createElement('div');
+    row.className = 'toggle-item' + (ch.enabled ? '' : ' disabled');
+    row.innerHTML = `
+      <div class="info">
+        <div class="name">${ch.name}</div>
+        <div class="detail">${ch.note}</div>
+      </div>
+      <div class="amount">${ch.share_pct}%</div>
+      <label class="toggle">
+        <input type="checkbox" ${ch.enabled ? 'checked' : ''} onchange="toggleChannel(${i}, this.checked)">
+        <span class="slider"></span>
+      </label>
+    `;
+    el.appendChild(row);
+  });
+}
+function toggleChannel(i, val) {
+  MODEL.channels[i].enabled = val;
+  renderAll();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).style.display = 'block';
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadModel);
+} else {
+  loadModel();
+}
+</script>
+</body>
+</html>
