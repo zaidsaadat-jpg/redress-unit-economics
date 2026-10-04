@@ -163,7 +163,13 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
         <div>Unit Economics Dashboard</div>
         <div id="metaDate">Loading…</div>
       </div>
-      <button id="uploadBtn" onclick="openUploader()" style="background:var(--sand);color:var(--forest);border:none;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">📂 Upload Excel</button>
+      <div style="position:relative;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="sourcesBtn" onclick="toggleSourcesPopover()" style="background:rgba(255,255,255,0.1);color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:600;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;">○ 0/3 sources</button>
+          <button id="uploadBtn" onclick="openUploader()" style="background:var(--sand);color:var(--forest);border:none;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;">📂 Upload Excel</button>
+        </div>
+        <div id="sourcesPopover" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;color:var(--text);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.18);padding:14px 16px;width:360px;z-index:100;max-height:80vh;overflow-y:auto;text-align:left;"></div>
+      </div>
     </div>
   </div>
   <div class="tabs">
@@ -430,6 +436,7 @@ async function loadModel(){
     if(MODEL.derived_from_excel){EXCEL_UPLOADED=true;EXCEL_FILENAME='revenue_model.json (pre-baked)';}
     if(MODEL.pl_actuals&&MODEL.pl_actuals.programmes&&Object.keys(MODEL.pl_actuals.programmes).length){PL_UPLOADED=true;}
     renderAll();
+    safeCall('sourcesIndicator',()=>renderSourcesIndicator());
   }catch(err){
     console.error('loadModel failed:',err);
     const ls=$el('loadingScreen');
@@ -503,6 +510,7 @@ function renderAll(){
   safeCall('heatmaps',()=>renderHeatmaps());
   safeCall('channelMix',()=>renderChannelMix());
   safeCall('sources',()=>updateAllSources());
+  safeCall('sourcesIndicator',()=>renderSourcesIndicator());
   hide('loadingScreen');
   const tt=$el('tab-target');if(tt)tt.style.display='block';
 }
@@ -533,7 +541,6 @@ function renderPLSection(){
     return;
   }
 
-  // Consolidated
   let totIncome=0,totCosts=0,totProfit=0;
   names.forEach(n=>{const p=progs[n];totIncome+=p.total_income;totCosts+=(p.total_expenses+(p.total_cost_of_sales||0));totProfit+=p.operating_profit;});
   const target=MODEL.target.surplus_hkd;
@@ -552,12 +559,10 @@ function renderPLSection(){
     '<div class="pl-card '+(aboveTarget?'income':'gap')+'"><div class="lbl">vs Target ('+fmtHKD(target)+')</div><div class="val">'+(aboveTarget?'✓ Above':'⚠ Below')+'</div><div class="sub">'+(aboveTarget?'By '+fmtHKD(totProfit-target):'Gap: '+fmtHKD(target-totProfit))+'</div></div>'+
   '</div>';
 
-  // Per-programme
   html+='<div style="font-size:12px;font-weight:700;color:var(--forest);text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;">Per-programme breakdown</div>';
   html+='<div class="prog-grid">';
   names.forEach(n=>{
     const p=progs[n];
-    const costs=p.total_expenses+(p.total_cost_of_sales||0);
     const pos=p.operating_profit>=0;
     html+='<div class="prog-card">'+
       '<h5>'+n+'</h5>'+
@@ -570,7 +575,6 @@ function renderPLSection(){
   });
   html+='</div>';
 
-  // Income mix bar
   const resale=names.reduce((s,n)=>s+(progs[n].income['Income (System)']||0),0);
   const grants=names.reduce((s,n)=>s+(progs[n].income['Grants']||0),0);
   const donations=names.reduce((s,n)=>s+(progs[n].income['Donation']||0),0);
@@ -584,7 +588,6 @@ function renderPLSection(){
       (pctDonations>0?'<div style="width:'+pctDonations+'%;background:#94a3b8;">'+pctDonations.toFixed(0)+'% donations</div>':'')+
     '</div></div>';
 
-  // Insight banners
   const takebackKey=names.find(n=>/takeback/i.test(n));
   const shopKey=names.find(n=>/shop/i.test(n));
 
@@ -612,13 +615,11 @@ function renderPLSection(){
     html+='<div class="info-banner" style="margin-top:12px;">Upload the <strong>Takeback Programme</strong> P&L to complete the consolidated view.</div>';
   }
 
-  // Staff caveat
   const hasStaff=MODEL.fixed_costs.items.some(i=>/salary|salaries|staff|payroll/i.test(i.name)&&i.enabled);
   if(!hasStaff){
     html+='<div class="warn-banner" style="margin-top:12px;"><strong>⚠ Heads-up:</strong> No staff salaries line appears in any uploaded P&L. If staff costs are allocated elsewhere in Redress Limited, this dashboard <strong>understates</strong> true programme costs.</div>';
   }
 
-  // Target ambition check
   if(totProfit>target*2){
     html+='<div class="info-banner" style="margin-top:12px;"><strong>📈 Target looks unambitious.</strong> Actual operating profit is '+fmtHKD(totProfit)+' — about <strong>'+(totProfit/target).toFixed(1)+'× the current HK$'+target.toLocaleString()+' target</strong>. Consider raising the target or refocusing the board conversation on growth (Shop scaling) and sustainability (Takeback grant independence).</div>';
   }
@@ -685,7 +686,6 @@ function applyNormalDistribution(){const mean=250,std=120;MODEL.pricing.tiers.fo
 function renderFixedCostsEditor(){
   const el=$el('fixedCostsEditor');if(!el)return;
   el.innerHTML='';
-  // Sort: P&L items first grouped by programme, then placeholders
   const items=MODEL.fixed_costs.items.slice().sort((a,b)=>{
     const sa=a.source==='placeholder'?1:0;
     const sb=b.source==='placeholder'?1:0;
@@ -792,6 +792,173 @@ function showTab(name,btn){
   document.querySelectorAll('.tab-panel').forEach(p=>p.style.display='none');
   if(btn)btn.classList.add('active');
   const panel=$el('tab-'+name);if(panel)panel.style.display='block';
+}
+
+// ============================================================
+// DATA SOURCES SUMMARY PANEL
+// ============================================================
+function getLoadedSources() {
+  const sources = [];
+
+  if (EXCEL_UPLOADED && MODEL.derived_from_excel) {
+    sources.push({
+      id: 'warehouse',
+      label: 'Warehouse Inventory',
+      file: EXCEL_FILENAME,
+      detail: Math.round(MODEL.derived_from_excel.total_kg).toLocaleString() + ' kg collected · ' + MODEL.derived_from_excel.kg_per_unit + ' kg/item · uploaded ' + MODEL.derived_from_excel.last_upload,
+      loaded: true
+    });
+  } else {
+    sources.push({ id: 'warehouse', label: 'Warehouse Inventory', loaded: false });
+  }
+
+  const progs = (MODEL.pl_actuals && MODEL.pl_actuals.programmes) || {};
+  const expectedProgrammes = ['Takeback Programme', 'SSP Shop'];
+
+  expectedProgrammes.forEach(name => {
+    const p = progs[name];
+    if (p) {
+      sources.push({
+        id: 'pl-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        label: name + ' P&L',
+        file: p.filename,
+        detail: 'Income ' + fmtHKD(p.total_income) + ' · Op profit ' + fmtHKD(p.operating_profit) + ' · ' + p.year,
+        loaded: true,
+        programme: name
+      });
+    } else {
+      sources.push({
+        id: 'pl-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        label: name + ' P&L',
+        loaded: false,
+        programme: name
+      });
+    }
+  });
+
+  Object.keys(progs).forEach(name => {
+    if (expectedProgrammes.includes(name)) return;
+    const p = progs[name];
+    sources.push({
+      id: 'pl-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      label: name + ' P&L',
+      file: p.filename,
+      detail: 'Income ' + fmtHKD(p.total_income) + ' · Op profit ' + fmtHKD(p.operating_profit) + ' · ' + p.year,
+      loaded: true,
+      programme: name
+    });
+  });
+
+  return sources;
+}
+
+function renderSourcesIndicator() {
+  const sources = getLoadedSources();
+  const loaded = sources.filter(s => s.loaded).length;
+  const total = sources.length;
+
+  const btn = $el('sourcesBtn');
+  if (btn) {
+    const allLoaded = loaded === total;
+    const someLoaded = loaded > 0;
+    const bg = allLoaded ? 'rgba(45,106,79,0.45)' : someLoaded ? 'rgba(217,119,6,0.4)' : 'rgba(255,255,255,0.1)';
+    const icon = allLoaded ? '✓' : someLoaded ? '◐' : '○';
+    btn.style.background = bg;
+    btn.innerHTML = icon + ' ' + loaded + '/' + total + ' sources';
+    btn.title = allLoaded ? 'All source files loaded — click for details' : 'Click to see which files are missing';
+  }
+
+  const pop = $el('sourcesPopover');
+  if (!pop) return;
+
+  const rowsHTML = sources.map(s => {
+    const badge = s.loaded ? '<span style="color:var(--success);font-weight:700;">✓</span>' : '<span style="color:#9ca3af;font-weight:700;">○</span>';
+    const nameLine = s.loaded
+      ? '<div style="font-size:11px;color:var(--text-muted);margin-top:3px;word-break:break-all;">📄 ' + s.file + '</div>'
+      : '<div style="font-size:11px;color:#9ca3af;margin-top:3px;font-style:italic;">not uploaded</div>';
+    const detail = s.detail ? '<div style="font-size:11px;color:var(--text-muted);margin-top:3px;">' + s.detail + '</div>' : '';
+    const actionBtn = s.loaded
+      ? '<button onclick="event.stopPropagation();removeSource(\'' + s.id + '\')" style="background:none;border:1px solid var(--border);color:var(--danger);font-size:11px;cursor:pointer;padding:3px 8px;border-radius:5px;flex-shrink:0;">Remove</button>'
+      : '<button onclick="event.stopPropagation();closeSourcesPopover();openUploader();" style="background:var(--sage);color:#fff;border:none;font-size:11px;cursor:pointer;padding:4px 10px;border-radius:5px;flex-shrink:0;">Upload</button>';
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:13px;font-weight:600;color:var(--forest);">' + badge + ' ' + s.label + '</div>' +
+        nameLine + detail +
+      '</div>' + actionBtn +
+    '</div>';
+  }).join('');
+
+  const allLoaded = loaded === total;
+  const headerStatus = allLoaded
+    ? '<div style="font-size:12px;color:var(--success);font-weight:600;margin-bottom:4px;">✓ All source data loaded</div>'
+    : '<div style="font-size:12px;color:#92400e;font-weight:600;margin-bottom:4px;">◐ ' + (total - loaded) + ' source' + (total - loaded > 1 ? 's' : '') + ' missing — charts for those areas use placeholders</div>';
+
+  pop.innerHTML = headerStatus + rowsHTML +
+    (loaded > 0 ? '<div style="padding-top:12px;text-align:right;"><button onclick="event.stopPropagation();clearAllSources()" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer;">Clear all &amp; reset</button></div>' : '');
+}
+
+function toggleSourcesPopover() {
+  const pop = $el('sourcesPopover');
+  if (!pop) return;
+  pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
+  if (pop.style.display === 'block') renderSourcesIndicator();
+}
+
+function closeSourcesPopover() {
+  const pop = $el('sourcesPopover');
+  if (pop) pop.style.display = 'none';
+}
+
+document.addEventListener('click', function (e) {
+  const pop = $el('sourcesPopover');
+  const btn = $el('sourcesBtn');
+  if (!pop || !btn) return;
+  if (pop.style.display !== 'block') return;
+  if (pop.contains(e.target) || btn.contains(e.target)) return;
+  pop.style.display = 'none';
+});
+
+function removeSource(id) {
+  if (!confirm('Remove this source and revert its charts to placeholder?')) return;
+
+  if (id === 'warehouse') {
+    EXCEL_UPLOADED = false;
+    EXCEL_FILENAME = '';
+    MODEL.derived_from_excel = null;
+    if (originalModel) {
+      MODEL.seasonality = JSON.parse(JSON.stringify(originalModel.seasonality));
+      MODEL.yield = JSON.parse(JSON.stringify(originalModel.yield));
+      MODEL.channels = JSON.parse(JSON.stringify(originalModel.channels));
+    }
+  } else if (id.startsWith('pl-')) {
+    const progs = (MODEL.pl_actuals && MODEL.pl_actuals.programmes) || {};
+    const found = Object.keys(progs).find(name => {
+      const mapped = 'pl-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      return mapped === id;
+    });
+    if (found) {
+      delete MODEL.pl_actuals.programmes[found];
+      MODEL.fixed_costs.items = MODEL.fixed_costs.items.filter(i => i.programme !== found);
+    }
+    const remaining = Object.keys(MODEL.pl_actuals.programmes || {}).length;
+    PL_UPLOADED = remaining > 0;
+    if (!PL_UPLOADED && originalModel) {
+      MODEL.fixed_costs = JSON.parse(JSON.stringify(originalModel.fixed_costs));
+      MODEL.pl_actuals = { programmes: {}, last_upload: null };
+    }
+  }
+  renderAll();
+  setTimeout(() => { const p = $el('sourcesPopover'); if (p) p.style.display = 'block'; }, 0);
+}
+
+function clearAllSources() {
+  if (!confirm('Clear ALL uploaded data and revert everything to the placeholder model? This cannot be undone.')) return;
+  EXCEL_UPLOADED = false;
+  EXCEL_FILENAME = '';
+  PL_UPLOADED = false;
+  MODEL = JSON.parse(JSON.stringify(originalModel));
+  renderAll();
+  closeSourcesPopover();
 }
 
 // ============================================================
@@ -945,7 +1112,6 @@ function parsePL(wb){
   if(!sheet)throw new Error('Sheet "Profit and Loss" not found');
   const rows=XLSX.utils.sheet_to_json(sheet,{header:1,raw:true,defval:null});
 
-  // Detect programme name from row 5 (index 4)
   let programme='Unknown Programme';
   for(let i=0;i<Math.min(10,rows.length);i++){
     const cell=(rows[i]&&rows[i][0])?rows[i][0].toString():'';
@@ -953,7 +1119,6 @@ function parsePL(wb){
     if(match){programme=match[1].trim();break;}
   }
 
-  // Find header row
   let headerRow=-1;
   for(let i=0;i<rows.length;i++){
     if((rows[i][0]||'').toString().trim()==='Account'){headerRow=i;break;}
@@ -1085,9 +1250,8 @@ function applyPL(){
   if(!MODEL.pl_actuals.programmes)MODEL.pl_actuals.programmes={};
 
   const existingNames=Object.keys(MODEL.pl_actuals.programmes);
-  const isFirstPL=existingNames.length===0 && !existingNames.includes(p.programme);
+  const isFirstPL=existingNames.length===0;
 
-  // Store this programme
   MODEL.pl_actuals.programmes[p.programme]={
     year:p.year,
     filename:filename,
@@ -1102,20 +1266,15 @@ function applyPL(){
   };
   MODEL.pl_actuals.last_upload=new Date().toISOString().slice(0,10);
 
-  // Update fixed costs
   if(isFirstPL){
-    // First P&L ever — clear all placeholders
     MODEL.fixed_costs.items=[];
   }else{
-    // Remove items from this same programme (re-upload case)
     MODEL.fixed_costs.items=MODEL.fixed_costs.items.filter(i=>i.programme!==p.programme);
   }
 
-  // Add cost of sales lines
   Object.entries(p.costOfSales||{}).filter(([,v])=>v>0).forEach(([label,val])=>{
     MODEL.fixed_costs.items.push(plLineToFixedCost(label,val,p.programme,true));
   });
-  // Add operating expense lines
   Object.entries(p.expenses).filter(([,v])=>v>0).forEach(([label,val])=>{
     MODEL.fixed_costs.items.push(plLineToFixedCost(label,val,p.programme,false));
   });
@@ -1129,7 +1288,10 @@ function applyPL(){
 // ============================================================
 // BOOT
 // ============================================================
-function boot(){bindDropzone();loadModel();}
+function boot(){
+  bindDropzone();
+  loadModel();
+}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
 else boot();
 </script>
